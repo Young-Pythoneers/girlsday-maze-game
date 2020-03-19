@@ -6,6 +6,7 @@ authors = ["Nathan Hoogendorp <Nathan.Hoogendorp@ordina.nl>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+pygame = "^1.9.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
