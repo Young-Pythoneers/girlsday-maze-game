@@ -24,18 +24,18 @@ class Game:
         pygame.display.set_caption("Turtle VS Achilles")
         icon = pygame.image.load("../images/turtle_icon.png")
         pygame.display.set_icon(icon)
-        pygame.mouse.set_visible(0)
+        pygame.mouse.set_visible(1)
 
         self.event_listener = EventListener()
-        self.grid = Grid(7, 5)
+        self.grid = Grid(15, 11)
 
         self.music = music()
 
         goal = Goal(self.grid)
-        self.grid.addGridEntity(goal, 4, 4)
+        self.grid.addGridEntity(goal, 5, 5)
 
         score = Score(self.grid)
-        self.grid.addGridEntity(score, -0.4, 0.1)
+        self.grid.addGridEntity(score, 1, 1)
 
         player = Player(self.grid, goal, score)
         self.grid.addGridEntity(player, 3, 3)

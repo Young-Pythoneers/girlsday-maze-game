@@ -30,8 +30,6 @@ class GridEntity(Entity):
         self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.grid_X = 0
-        self.grid_Y = 0
         self.image = None
         self.X_size = 0
         self.Y_size = 0
@@ -72,8 +70,6 @@ class Tile(GridEntity):
         self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.grid_X = 0
-        self.grid_Y = 0
         self.image = pygame.Surface((30, 30))
         self.image.fill((255, 0, 0))
         self.X_size = 30
@@ -102,8 +98,6 @@ class Wall(GridEntity):
         self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.sub_grid_X = 0
-        self.sub_grid_Y = 0
         self.image = pygame.Surface((10, 10))
         self.image.fill((100, 100, 0))
         self.X_size = 10
@@ -132,8 +126,6 @@ class Player(GridEntity):
         self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.grid_X = 0
-        self.grid_Y = 0
         self.image = pygame.image.load("../images/sized_turtle.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
@@ -158,21 +150,31 @@ class Player(GridEntity):
                 self.X = self.transition_stop_X
                 self.Y = self.transition_stop_Y
         else:
+            X_change = 0
+            Y_change = 0
             if not self.in_transition and event_listener.K_LEFT:
-                self.grid_X -= 1
+                X_change -= 2
             if not self.in_transition and event_listener.K_RIGHT:
-                self.grid_X += 1
+                X_change += 2
             if not self.in_transition and event_listener.K_UP:
-                self.grid_Y -= 1
+                Y_change -= 2
             if not self.in_transition and event_listener.K_DOWN:
-                self.grid_Y += 1
+                Y_change += 2
             if not self.in_transition and any([event_listener.K_LEFT, event_listener.K_RIGHT, event_listener.K_UP, event_listener.K_DOWN]):
-                destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(self.grid_X, self.grid_Y)
+                grid_destination_X = self.entityKeeper.grid_X + X_change
+                grid_destination_Y = self.entityKeeper.grid_Y + Y_change
+                if not self.entityKeeper.entityKeeper.requestMove(grid_destination_X, grid_destination_Y):
+                    grid_destination_X = self.entityKeeper.grid_X
+                    grid_destination_Y = self.entityKeeper.grid_Y
+                self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
+                destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
+                print(grid_destination_X, grid_destination_Y)
+                print(self.entityKeeper.grid_X, self.entityKeeper.grid_Y)
                 #print(destination_X, destination_Y)
                 self.define_transition(destination_X, destination_Y, self.transition_time)
 
             distance_to_goal = math.sqrt(
-                math.pow((self.grid_X - self.goal.grid_X), 2) + math.pow((self.grid_Y - self.goal.grid_Y), 2))
+                math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow((self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
             if distance_to_goal <= 0.7:
                 self.goal.eaten = True
                 self.score.score += 1
@@ -188,8 +190,6 @@ class Goal(GridEntity):
         self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.grid_X = 0
-        self.grid_Y = 0
         self.image = pygame.image.load("../images/lettuce.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
@@ -209,9 +209,9 @@ class Goal(GridEntity):
         self.destroy()
 
     def respawn(self):
-        self.grid_X = np.random.randint(0, 7)
-        self.grid_Y = np.random.randint(0, 5)
-        self.entityKeeper.addGridEntity(self, self.grid_X, self.grid_Y)
+        grid_X = np.random.randint(0, 7) * 2 + 1
+        grid_Y = np.random.randint(0, 5) * 2 + 1
+        self.entityKeeper.entityKeeper.addGridEntity(self, grid_X, grid_Y)
 
 class Score(GridEntity):
     def __init__(self, entityKeeper):
