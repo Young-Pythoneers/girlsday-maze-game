@@ -54,6 +54,9 @@ class GridEntity(Entity):
         self.transition_stop_X = transition_goal_X
         self.transition_stop_Y = transition_goal_Y
 
+    def begin_transition(self):
+        pass
+
 class Tile(GridEntity):
     def __init__(self):
         self.entityKeeper = None
@@ -76,6 +79,9 @@ class Tile(GridEntity):
         pass
 
     def define_transition(self, transition_goal_X, transition_goal_Y):
+        pass
+
+    def begin_transition(self):
         pass
 
 class Wall(GridEntity):
@@ -102,6 +108,9 @@ class Wall(GridEntity):
         pass
 
     def define_transition(self, transition_goal_X, transition_goal_Y):
+        pass
+
+    def begin_transition(self):
         pass
 
 class Wallshape():
@@ -134,6 +143,7 @@ class Player(GridEntity):
         self.transition_stop_X = 0
         self.transition_stop_Y = 0
         self.transition_function = lambda x : -np.cos(np.pi * x / 2) + 1
+        self.command_queue = []
         self.score = Score
         self.goal = Goal
 
@@ -141,25 +151,6 @@ class Player(GridEntity):
         if self.entityKeeper.entityKeeper.in_transition:
             self.transition(event_listener)
         else:
-            X_change = 0
-            Y_change = 0
-            if event_listener.K_LEFT:
-                X_change -= 2
-            if event_listener.K_RIGHT:
-                X_change += 2
-            if event_listener.K_UP:
-                Y_change -= 2
-            if event_listener.K_DOWN:
-                Y_change += 2
-            if any([event_listener.K_LEFT, event_listener.K_RIGHT, event_listener.K_UP, event_listener.K_DOWN]):
-                grid_destination_X = self.entityKeeper.grid_X + X_change
-                grid_destination_Y = self.entityKeeper.grid_Y + Y_change
-                if not self.entityKeeper.entityKeeper.requestMove(grid_destination_X, grid_destination_Y):
-                    grid_destination_X = self.entityKeeper.grid_X
-                    grid_destination_Y = self.entityKeeper.grid_Y
-                self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
-                destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
-                self.define_transition(destination_X, destination_Y)
             distance_to_goal = math.sqrt(
                 math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow((self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
             if distance_to_goal <= 0.7:
@@ -169,7 +160,23 @@ class Player(GridEntity):
 
             #self.input_cooldown_timer = self.input_cooldown
             #self.input_cooldown_timer -= event_listener.time_passed
-
+    def begin_transition(self):
+        if len(self.command_queue) > 0:
+            command = self.command_queue.pop(0)
+            X_change = command[0]
+            Y_change = command[1]
+        else:
+            self.entityKeeper.entityKeeper.play = False
+            X_change = 0
+            Y_change = 0
+        grid_destination_X = self.entityKeeper.grid_X + X_change
+        grid_destination_Y = self.entityKeeper.grid_Y + Y_change
+        if not self.entityKeeper.entityKeeper.requestMove(grid_destination_X, grid_destination_Y):
+            grid_destination_X = self.entityKeeper.grid_X
+            grid_destination_Y = self.entityKeeper.grid_Y
+        self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
+        destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
+        self.define_transition(destination_X, destination_Y)
 
 
 class Goal(GridEntity):

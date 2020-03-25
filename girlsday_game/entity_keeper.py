@@ -1,5 +1,5 @@
 import numpy as np
-from girlsday_game.entity import GridEntity, Tile, Wall
+from girlsday_game.entity import GridEntity, Tile, Wall, Player
 
 class EntityKeeper:
     def __init__(self):
@@ -48,6 +48,10 @@ class Grid(EntityKeeper):
         self.transition_time_counter = 0
         self.transition_time = 0.3
         self.in_transition = False
+        self.play = False
+        self.player = None #can be removed in future
+        self.input_cooldown = 0.1  # can be removed in future
+        self.input_cooldown_timer = 0 # can be removed in future
         self.grid = []
         for i in range(self.size_Y):
             grid_row = []
@@ -65,6 +69,8 @@ class Grid(EntityKeeper):
                 self.addGridEntity(Wall(), j, i)
 
     def addGridEntity(self, ent, grid_X, grid_Y):
+        if isinstance(ent, Player):
+            self.player = ent
         ent.transition_time = self.transition_time
         self.entities.append(ent)
         self.grid[grid_Y][grid_X].addEntity(ent)
@@ -75,11 +81,29 @@ class Grid(EntityKeeper):
         self.entities.remove(ent)
 
     def updateEntities(self, event_listener):
-        for ent in self.entities:
-            ent.update(event_listener)
+        if self.input_cooldown_timer >= self.input_cooldown and (event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
+            X_change = 0
+            Y_change = 0
+            if event_listener.K_LEFT:
+                X_change -= 2
+            if event_listener.K_RIGHT:
+                X_change += 2
+            if event_listener.K_UP:
+                Y_change -= 2
+            if event_listener.K_DOWN:
+                Y_change += 2
+            self.player.command_queue.append((X_change, Y_change))
+            self.input_cooldown_timer = 0
+
+        if not self.in_transition and (event_listener.K_SPACE or self.play):
+            self.play = True
+            self.begin_transition()
         self.transition_time_counter += event_listener.time_passed
+        self.input_cooldown_timer += event_listener.time_passed
         if self.transition_time_counter >= self.transition_time:
             self.end_transition()
+        for ent in self.entities:
+            ent.update(event_listener)
 
 
     def moveGridEntity(self, ent, destination_X, destination_Y):
@@ -87,12 +111,13 @@ class Grid(EntityKeeper):
         self.grid[destination_Y][destination_X].addEntity(ent)
 
     def requestMove(self, grid_destination_X, grid_destination_Y):
-        self.define_transition()
         return grid_destination_X >= 0 and grid_destination_X < self.size_X and grid_destination_Y >= 0 and grid_destination_Y < self.size_Y
 
-    def define_transition(self):
+    def begin_transition(self):
         self.transition_time_counter = 0
         self.in_transition = True
+        for ent in self.entities:
+            ent.begin_transition()
 
     def end_transition(self):
         self.in_transition = False
