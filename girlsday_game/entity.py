@@ -160,6 +160,7 @@ class Player(GridEntity):
 
             #self.input_cooldown_timer = self.input_cooldown
             #self.input_cooldown_timer -= event_listener.time_passed
+
     def begin_transition(self):
         if len(self.command_queue) > 0:
             command = self.command_queue.pop(0)

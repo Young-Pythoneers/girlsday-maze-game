@@ -50,7 +50,7 @@ class Grid(EntityKeeper):
         self.in_transition = False
         self.play = False
         self.player = None #can be removed in future
-        self.input_cooldown = 0.1  # can be removed in future
+        self.input_cooldown = 0.3  # can be removed in future
         self.input_cooldown_timer = 0 # can be removed in future
         self.grid = []
         for i in range(self.size_Y):
@@ -81,7 +81,7 @@ class Grid(EntityKeeper):
         self.entities.remove(ent)
 
     def updateEntities(self, event_listener):
-        if self.input_cooldown_timer >= self.input_cooldown and (event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
+        if not self.play and self.input_cooldown_timer >= self.input_cooldown and (event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
             X_change = 0
             Y_change = 0
             if event_listener.K_LEFT:
