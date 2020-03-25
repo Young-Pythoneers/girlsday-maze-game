@@ -100,15 +100,15 @@ class Tile(GridEntity):
 class Wall(GridEntity):
     def __init__(self, entityKeeper):
         self.entityKeeper = entityKeeper
-        self.shape = Wallshape
+        self.shape = Wallshape()
         self.X = 0
         self.Y = 0
         self.sub_grid_X = 0
         self.sub_grid_Y = 0
-        self.image = pygame.Surface((10, 10))
+        self.image = self.shape.image
         self.image.fill((100, 100, 0))
-        self.X_size = 10
-        self.Y_size = 10
+        self.X_size = self.shape.X_size
+        self.Y_size = self.shape.Y_size
         self.in_transition = False
         self.transition_start_X = 0
         self.transition_start_Y = 0
