@@ -100,6 +100,7 @@ class Tile(GridEntity):
 class Wall(GridEntity):
     def __init__(self, entityKeeper):
         self.entityKeeper = entityKeeper
+        self.shape = Wallshape
         self.X = 0
         self.Y = 0
         self.sub_grid_X = 0
@@ -118,6 +119,7 @@ class Wall(GridEntity):
         self.transition_function = None
         self.transition_time = 1
 
+
     def update(self, event_listener):
         pass
 
@@ -126,6 +128,23 @@ class Wall(GridEntity):
 
     def define_transition(self, transition_goal_X, transition_goal_Y, transition_time):
         pass
+
+class Wallshape():
+    def __init__(self):
+        self.image = pygame.Surface((10, 10))
+        self.image.fill((100, 100, 0))
+        self.X_size = 10
+        self.Y_size = 10
+
+    def corner(self):
+        pass
+
+    def horizontal(self):
+        pass
+
+    def vertical(self):
+        pass
+
 
 class Player(GridEntity):
     def __init__(self, entityKeeper,  Goal, Score):
