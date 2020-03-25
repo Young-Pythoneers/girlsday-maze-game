@@ -31,13 +31,13 @@ class Game:
 
         self.music = music()
 
-        goal = Goal(self.grid)
+        goal = Goal()
         self.grid.addGridEntity(goal, 5, 5)
 
-        score = Score(self.grid)
+        score = Score()
         self.grid.addGridEntity(score, 1, 1)
 
-        player = Player(self.grid, goal, score)
+        player = Player(goal, score)
         self.grid.addGridEntity(player, 3, 3)
 
         self.display = Display()
