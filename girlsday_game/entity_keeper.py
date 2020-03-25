@@ -66,7 +66,7 @@ class Grid(EntityKeeper):
                 self.addGridEntity(Tile(), j * 2 + 1, i * 2 + 1)
         for i in range(self.size_Y):
             for j in range(self.size_X):
-                self.addGridEntity(Wall(), j, i)
+                self.addGridEntity(Wall(self.grid[i][j]), j, i)
 
     def addGridEntity(self, ent, grid_X, grid_Y):
         if isinstance(ent, Player):
@@ -93,6 +93,7 @@ class Grid(EntityKeeper):
             if event_listener.K_DOWN:
                 Y_change += 2
             self.player.command_queue.append((X_change, Y_change))
+            print(self.player.command_queue)
             self.input_cooldown_timer = 0
 
         if not self.in_transition and (event_listener.K_SPACE or self.play):
@@ -110,7 +111,12 @@ class Grid(EntityKeeper):
         ent.entityKeeper.removeEntity(ent)
         self.grid[destination_Y][destination_X].addEntity(ent)
 
-    def requestMove(self, grid_destination_X, grid_destination_Y):
+    def requestMove(self, grid_source_X, grid_source_Y, grid_destination_X, grid_destination_Y):
+        #TODO Nathan BEGIN
+        #Nathan: voordat een entity zich naar een nieuw GridPoint verplaatst, vraagt hij aan grid of dit wel kan / mag
+        #Voor nu wordt er alleen gekeken of een entity niet van de grid afloopt
+        #Je dit kunnen uitbreiden door te kijken of er een wall tussen de source en destination zit
+        #TODO Nathan END
         return grid_destination_X >= 0 and grid_destination_X < self.size_X and grid_destination_Y >= 0 and grid_destination_Y < self.size_Y
 
     def begin_transition(self):

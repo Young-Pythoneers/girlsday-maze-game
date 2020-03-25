@@ -8,8 +8,11 @@ SCREEN_SIZE_X = 800
 SCREEN_SIZE_Y = 600
 
 class Entity:
-    def __init__(self):
-        self.entityKeeper = None
+    def __init__(self, entityKeeper = None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
         self.image = None
@@ -26,8 +29,11 @@ class Entity:
 
 
 class GridEntity(Entity):
-    def __init__(self):
-        self.entityKeeper = None
+    def __init__(self, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
         self.image = None
@@ -58,14 +64,17 @@ class GridEntity(Entity):
         pass
 
 class Tile(GridEntity):
-    def __init__(self):
-        self.entityKeeper = None
+    def __init__(self, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.image = pygame.Surface((30, 30))
+        self.image = pygame.Surface((50, 50))
         self.image.fill((255, 0, 0))
-        self.X_size = 30
-        self.Y_size = 30
+        self.X_size = 50
+        self.Y_size = 50
         self.transition_start_X = 0
         self.transition_start_Y = 0
         self.transition_stop_X = 0
@@ -85,15 +94,37 @@ class Tile(GridEntity):
         pass
 
 class Wall(GridEntity):
-    def __init__(self):
-        self.entityKeeper = None
-        self.shape = Wallshape()
+    def __init__(self, entityKeeper):
+        self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.image = self.shape.image
-        self.image.fill((100, 100, 0))
-        self.X_size = self.shape.X_size
-        self.Y_size = self.shape.Y_size
+        #TODO Nathan BEGIN
+        #Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
+        #Je zou een class van WallShape kunnen maken, maar het lijkt met niet absoluut nodig
+        if self.entityKeeper.grid_Y % 2 == 0:
+            if self.entityKeeper.grid_X % 2 == 1:
+                #Nathan: Horizontaal
+                width = 60
+                depth = 10
+            else:
+                #Nathan: Hoekpunt
+                width = 40
+                depth = 40
+
+        else:
+            if self.entityKeeper.grid_X % 2 == 1:
+                #Nathan: Op grid waar tile hoort
+                width = 0
+                depth = 0
+            else:
+                #Nathan: Verticaal
+                width = 10
+                depth = 60
+        self.image = pygame.Surface((width, depth))
+        self.image.fill((150, 150, 0))
+        self.X_size = width
+        self.Y_size = depth
+        # TODO Nathan END
         self.transition_start_X = 0
         self.transition_start_Y = 0
         self.transition_stop_X = 0
@@ -113,36 +144,25 @@ class Wall(GridEntity):
     def begin_transition(self):
         pass
 
-class Wallshape():
-    def __init__(self):
-        self.image = pygame.Surface((10, 10))
-        self.image.fill((100, 100, 0))
-        self.X_size = 10
-        self.Y_size = 10
-
-    def corner(self):
-        pass
-
-    def horizontal(self):
-        pass
-
-    def vertical(self):
-        pass
-
-
 class Player(GridEntity):
-    def __init__(self,  Goal, Score):
-        self.entityKeeper = None
+    def __init__(self, Goal, Score, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
         self.image = pygame.image.load("../images/sized_turtle.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
+
+        #variables to track the transition
         self.transition_start_X = 0
         self.transition_start_Y = 0
         self.transition_stop_X = 0
         self.transition_stop_Y = 0
         self.transition_function = lambda x : -np.cos(np.pi * x / 2) + 1
+
         self.command_queue = []
         self.score = Score
         self.goal = Goal
@@ -157,31 +177,72 @@ class Player(GridEntity):
                 self.goal.eaten = True
                 self.score.score += 1
                 music.sound_handler('../sounds/munch.wav', 0)
-
-            #self.input_cooldown_timer = self.input_cooldown
-            #self.input_cooldown_timer -= event_listener.time_passed
+                #TODO Nathan BEGIN
+                #Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
+                #self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
+                #Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
+                #Dan lijkt het al gauw op een explosie
+                #TODO Nathan END
 
     def begin_transition(self):
         if len(self.command_queue) > 0:
+            # If there is a command on the queue, pop it and do it
             command = self.command_queue.pop(0)
             X_change = command[0]
             Y_change = command[1]
         else:
+            # If there is no command on the queue tell the grid that it should not play transitions anymore
             self.entityKeeper.entityKeeper.play = False
             X_change = 0
             Y_change = 0
         grid_destination_X = self.entityKeeper.grid_X + X_change
         grid_destination_Y = self.entityKeeper.grid_Y + Y_change
-        if not self.entityKeeper.entityKeeper.requestMove(grid_destination_X, grid_destination_Y):
+        if not self.entityKeeper.entityKeeper.requestMove(self.entityKeeper.grid_X, self.entityKeeper.grid_Y, grid_destination_X, grid_destination_Y):
             grid_destination_X = self.entityKeeper.grid_X
             grid_destination_Y = self.entityKeeper.grid_Y
         self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
         destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
         self.define_transition(destination_X, destination_Y)
 
+#TODO Nathan BEGIN
+#Nathan: Deze functie kan verder uitgebreidt worden
+class Enemy(GridEntity):
+    def __init__(self, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
+        self.X = 0
+        self.Y = 0
+        self.image = None
+        self.X_size = 0
+        self.Y_size = 0
+        self.transition_start_X = 0
+        self.transition_start_Y = 0
+        self.transition_stop_X = 0
+        self.transition_stop_Y = 0
+        self.transition_function = lambda x : x
+
+    def update(self, event_listener):
+        if self.entityKeeper.entityKeeper.in_transition:
+            self.transition(event_listener)
+
+    #def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
+
+    #def define_transition(self, transition_goal_X, transition_goal_Y):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
+
+    def begin_transition(self):
+        #Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
+        #Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
+        pass
+#TODO Nathan END
 
 class Goal(GridEntity):
-    def __init__(self):
+    def __init__(self, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.entityKeeper = None
         self.X = 0
         self.Y = 0
@@ -205,7 +266,11 @@ class Goal(GridEntity):
         self.entityKeeper.entityKeeper.moveGridEntity(self, grid_X, grid_Y)
 
 class Score(GridEntity):
-    def __init__(self):
+    def __init__(self, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.entityKeeper = None
         self.X = 10
         self.Y = 10
@@ -221,7 +286,11 @@ class Score(GridEntity):
 
 
 class PhysicalEntity(Entity):
-    def __init__(self):
+    def __init__(self, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.entityKeeper = None
         self.X = 0
         self.Y = 0
@@ -241,8 +310,11 @@ class PhysicalEntity(Entity):
         ...
 
 class Projectile(PhysicalEntity):
-    def __init__(self, X, Y, impulse_X, impulse_Y):
-        self.entityKeeper = None
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = X
         self.Y = Y
         self.impulse_X = impulse_X
@@ -267,8 +339,11 @@ class Projectile(PhysicalEntity):
         self.destroy()
 
 class Particle(Projectile):
-    def __init__(self, X, Y, impulse_X, impulse_Y):
-        self.entityKeeper = None
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = X
         self.Y = Y
         self.impulse_X = impulse_X
@@ -291,8 +366,11 @@ class Particle(Projectile):
             self.destroy()
 
 class Rocket(Projectile):
-    def __init__(self, X, Y, impulse_X, impulse_Y):
-        self.entityKeeper = None
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = X
         self.Y = Y
         self.impulse_X = impulse_X
@@ -327,8 +405,11 @@ class Rocket(Projectile):
             self.entityKeeper.addEntity(Particle(self.entityKeeper, self.X + uniform(-self.spread,self.spread), self.Y + uniform(-self.spread,self.spread), self.impulse_X * self.impulse_multiplier + uniform(-self.impulse_modifier, self.impulse_modifier), self.impulse_Y * self.impulse_multiplier + uniform(-self.impulse_modifier, self.impulse_modifier)))
 
 class RocketDuck(PhysicalEntity):
-    def __init__(self):
-        self.entityKeeper = None
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        if entityKeeper is None:
+            self.entityKeeper = None
+        else:
+            self.entityKeeper = entityKeeper
         self.X = 370
         self.Y = 480
         self.impulse_X = 0

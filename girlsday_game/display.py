@@ -11,5 +11,4 @@ class Display:
         for ent in entities:
             X, Y = ent.give_center_XY()
             screen.blit(ent.image, [X, Y])
-        # pygame.display.flip()
         pygame.display.update()
