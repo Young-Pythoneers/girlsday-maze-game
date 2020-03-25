@@ -81,13 +81,13 @@ class Tile(GridEntity):
 class Wall(GridEntity):
     def __init__(self):
         self.entityKeeper = None
-        self.shape = Wallshape
+        self.shape = Wallshape()
         self.X = 0
         self.Y = 0
-        self.image = pygame.Surface((10, 10))
+        self.image = self.shape.image
         self.image.fill((100, 100, 0))
-        self.X_size = 10
-        self.Y_size = 10
+        self.X_size = self.shape.X_size
+        self.Y_size = self.shape.Y_size
         self.transition_start_X = 0
         self.transition_start_Y = 0
         self.transition_stop_X = 0
