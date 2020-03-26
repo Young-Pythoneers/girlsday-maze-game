@@ -13,18 +13,16 @@ class Game:
         # initialize pygame
         pygame.init()
         self.display = Display(self, 800, 600)
-
         self.event_listener = EventListener(self)
         self.grid = Grid(self)
-
         self.music = music(self)
-
+        self.collisions = Collisions(self)
+        self.physics = Physics(self)
         goal = Goal()
         self.grid.addGridEntity(goal, 3, 1)
 
         score = Score()
         self.grid.addGridEntity(score, 1, 1)
-
         player = Player(goal, score)
         self.grid.addGridEntity(player, 1, 1)
 
@@ -32,6 +30,8 @@ class Game:
 
         while True:
             do_we_continue = self.event_listener.listen()
+            self.collisions.applyCollisions(self.grid.entities)
+            self.physics.applyPhysics(self.grid.entities, self.event_listener)
             self.grid.updateEntities(self.event_listener)
             self.display.drawScreen(self.grid.entities)
 

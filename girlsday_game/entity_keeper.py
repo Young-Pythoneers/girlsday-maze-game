@@ -81,11 +81,6 @@ class Grid(EntityKeeper):
                 grid_row.append(gridPoint)
             self.grid.append(grid_row)
 
-        coords = []
-        for y in range(self.size_Y):
-            for x in range(self.size_X):
-                coords.append((x,y))
-
         # Fill the grid with Tiles and Walls
         for i in range(len(lvl1)):
             for j in range(len(lvl1[i])):
@@ -168,9 +163,11 @@ class Grid(EntityKeeper):
         self.transition_time_counter = 0
         self.in_transition = True
         for ent in self.entities:
-            ent.begin_transition()
+            if isinstance(ent, GridEntity):
+                ent.begin_transition()
 
     def end_transition(self):
         self.in_transition = False
         for ent in self.entities:
-            ent.entityKeeper.set_grid_XY_to_world_XY(ent)
+            if isinstance(ent, GridEntity):
+                ent.entityKeeper.set_grid_XY_to_world_XY(ent)

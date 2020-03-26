@@ -15,7 +15,7 @@ class Physics:
     def __init__(self, game):
         self.game = game
         self.friction = 3
-        self.gravity = 0
+        self.gravity = 10
 
     def applyPhysics(self, entities: Entity, event_listener: EventListener) -> None:
         """ Function that applies the following physical effects to PhysicalEntities only:
@@ -39,7 +39,8 @@ class Physics:
                 ent.impulse_Y /= (
                     1 + (self.friction * event_listener.time_passed) / ent.mass
                 )
-                if ent.Y <= self.game.display.screen_size_Y - ent.Y_size:#This if statement fixes weird behaviour at the screen's bottom.
+                if ent.Y <= self.game.display.screen_size_Y - ent.Y_size and \
+                    not ent.collided:#This if statement fixes weird behaviour at the screen's bottom.
                     #Apply gravity
                     ent.impulse_Y += (
                         self.gravity * ent.mass * event_listener.time_passed

@@ -4,13 +4,17 @@ import math
 
 import numpy as np
 
-from girlsday_game.entity import PhysicalEntity, Projectile
+from girlsday_game.entity import PhysicalEntity, Projectile, Tile, Player, Goal, Wall
 
 class Collisions:
     def __init__(self, game):
         self.game = game
 
     def collision(selfs, ent1, ent2):
+        penetration = 0
+        distance = math.sqrt(math.pow(ent1.X - ent2.X, 2) + math.pow(ent1.Y - ent2.Y, 2))
+        if  distance > 100:
+            return False, 0
         points1 = [
             (ent1.X, ent1.Y),
             (ent1.X + ent1.X_size, ent1.Y),
@@ -41,7 +45,7 @@ class Collisions:
                 for p in points2
             ]
         )
-        return output1 or output2
+        return output1 or output2, distance
 
     def applyCollisions(self, entities):
         #For every PhysicalEntity, check if they go off the edge of the screen
@@ -59,14 +63,31 @@ class Collisions:
         #For every pair of PhysicalEntities, check if they are in a collision
         #If so, they each give eachother a part of their impulse
         for ent1, ent2 in list(itertools.combinations(entities, 2)):
-            if isinstance(ent1, PhysicalEntity) and isinstance(ent2, PhysicalEntity) and not (isinstance(ent1, Projectile) and isinstance(ent2, Projectile)):
-                if self.collision(ent1, ent2):
-                    impulse_X_dif = ent1.impulse_X - ent2.impulse_X
-                    impulse_Y_dif = ent1.impulse_Y - ent2.impulse_Y
-                    ent1.impulse_X = -impulse_X_dif
-                    ent1.impulse_Y = -impulse_Y_dif
-                    ent2.impulse_X = impulse_X_dif
-                    ent2.impulse_Y = impulse_Y_dif
-                    ent1.collided = True
-                    ent2.collided = True
-                    music.sound_handler('../sounds/buble_shot.wav', 0)
+            if (not (isinstance(ent1, Projectile) and isinstance(ent2, Projectile)) and
+                    (not (isinstance(ent1, Tile) or isinstance(ent2, Tile))) and
+                    (not (isinstance(ent1, Player) or isinstance(ent2, Player))) and
+                    (not (isinstance(ent1, Goal) or isinstance(ent2, Goal)))):
+                collided, distance = self.collision(ent1, ent2)
+                if collided:
+                    if isinstance(ent1, PhysicalEntity):
+                        X1 = ent1.impulse_X
+                        Y1 = ent1.impulse_Y
+                    else:
+                        X1 = 0
+                        Y1 = 0
+                    if isinstance(ent2, PhysicalEntity):
+                        X2 = ent2.impulse_X
+                        Y2 = ent2.impulse_Y
+                    else:
+                        X2 = 0
+                        Y2 = 0
+                    impulse_X_dif = X1 - X2
+                    impulse_Y_dif = Y1 - Y2
+                    if isinstance(ent1, PhysicalEntity):
+                        ent1.impulse_X = -impulse_X_dif
+                        ent1.impulse_Y = -impulse_Y_dif
+                        ent1.collided = True
+                    if isinstance(ent2, PhysicalEntity):
+                        ent2.impulse_X = impulse_X_dif
+                        ent2.impulse_Y = impulse_Y_dif
+                        ent2.collided = True

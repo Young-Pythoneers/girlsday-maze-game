@@ -106,7 +106,6 @@ class Wall(GridEntity):
         # TODO Nathan BEGIN
         # Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
         # Je zou een class van WallShape kunnen maken, maar het lijkt met niet absoluut nodig
-
         if self.entityKeeper.grid_Y % 2 == 0:
             if self.entityKeeper.grid_X % 2 == 1:
                 # Nathan: Horizontaal
@@ -116,7 +115,6 @@ class Wall(GridEntity):
                 # Nathan: Hoekpunt
                 width = 40
                 depth = 40
-
         else:
             if self.entityKeeper.grid_X % 2 == 1:
                 # Nathan: Op grid waar tile hoort
@@ -282,8 +280,15 @@ class Goal(GridEntity):
 
     def update(self, event_listener):
         if self.eaten == True:
+            self.make_explosion()
             self.respawn()
             self.eaten = False
+    def make_explosion(self):
+        for i in range(10):
+            angle = uniform(0,2 * np.pi)
+            magnitude = uniform(4,6)
+            particle = Particle(self.X, self.Y, np.cos(angle) * magnitude, np.sin(angle) * magnitude)
+            self.entityKeeper.entityKeeper.addEntity(particle)
 
     def respawn(self):
         while True:
@@ -380,20 +385,19 @@ class Particle(Projectile):
         self.impulse_X = impulse_X
         self.impulse_Y = impulse_Y
         self.speed = 0
-        self.mass = 0.1
+        self.mass = 1
         self.image = pygame.image.load("../images/explosion.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
         self.collided = False
-        self.life_time = 0.25 + uniform(-0.1, 0.1)
+        self.life_time = 1 + uniform(-0.2, 0.2)
 
     def update(self, event_listener):
         if self.collided:
-            if self.collided:
-                self.destroy()
+            self.collided = False
         self.impulse_X += self.speed * event_listener.time_passed
         self.life_time -= event_listener.time_passed
-        if not self.collided and self.life_time < 0:
+        if self.life_time < 0:
             self.destroy()
 
 
