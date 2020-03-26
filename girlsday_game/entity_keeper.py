@@ -47,8 +47,8 @@ class Grid(EntityKeeper):
         self.wall_size = 50
         self.transition_time_counter = 0
         self.transition_time = 0.3
-        self.in_transition = False
-        self.play = False
+        self.in_transition = False #Are we in a transition state?
+        self.play = False#Do we play all commands in the player's queue?
         self.player = None #can be removed in future
         self.input_cooldown = 0.3  # can be removed in future
         self.input_cooldown_timer = 0 # can be removed in future

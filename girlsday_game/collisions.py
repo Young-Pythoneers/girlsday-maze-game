@@ -45,6 +45,8 @@ class Collisions:
         return output1 or output2
 
     def applyCollisions(self, entities):
+        #For every PhysicalEntity, check if they go off the edge of the screen
+        #If so, reverse the impulse
         for ent in entities:
             if isinstance(ent, PhysicalEntity):
                 if ent.X < 0 or ent.X > SCREEN_SIZE_X - ent.X_size:
@@ -55,7 +57,8 @@ class Collisions:
                     ent.collided = True
                 ent.X = np.clip(ent.X, 0, SCREEN_SIZE_X - ent.X_size)
                 ent.Y = np.clip(ent.Y, 0, SCREEN_SIZE_Y - ent.Y_size)
-
+        #For every pair of PhysicalEntities, check if they are in a collision
+        #If so, they each give eachother a part of their impulse
         for ent1, ent2 in list(itertools.combinations(entities, 2)):
             if isinstance(ent1, PhysicalEntity) and isinstance(ent2, PhysicalEntity) and not (isinstance(ent1, Projectile) and isinstance(ent2, Projectile)):
                 if self.collision(ent1, ent2):

@@ -169,11 +169,15 @@ class Player(GridEntity):
 
     def update(self, event_listener):
         if self.entityKeeper.entityKeeper.in_transition:
+            #If we are in transition mode, smoothly transition our world coordinates
             self.transition(event_listener)
         else:
+            #If we are not in transition mode, we can check for interactions
+            #Calculate the distance to the goal
             distance_to_goal = math.sqrt(
                 math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow((self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
             if distance_to_goal <= 0.7:
+                #If we are closer than one grid unit to the goal, the goal is eaten and points are scored
                 self.goal.eaten = True
                 self.score.score += 1
                 music.sound_handler('../sounds/munch.wav', 0)
@@ -185,6 +189,7 @@ class Player(GridEntity):
                 #TODO Nathan END
 
     def begin_transition(self):
+        #Read a command
         if len(self.command_queue) > 0:
             # If there is a command on the queue, pop it and do it
             command = self.command_queue.pop(0)
@@ -195,13 +200,21 @@ class Player(GridEntity):
             self.entityKeeper.entityKeeper.play = False
             X_change = 0
             Y_change = 0
+        #calculate the destination of the transition in grid coordinates
         grid_destination_X = self.entityKeeper.grid_X + X_change
         grid_destination_Y = self.entityKeeper.grid_Y + Y_change
+        #Check if the transition to the destination is possible
         if not self.entityKeeper.entityKeeper.requestMove(self.entityKeeper.grid_X, self.entityKeeper.grid_Y, grid_destination_X, grid_destination_Y):
+            #If the transition is not possible, a transition is still initialized, but with a change of 0.
+            #This way this entity is not moved, but it still waits for one transition interval.
+            #This is needed to synchronize all transitioning entities.
             grid_destination_X = self.entityKeeper.grid_X
             grid_destination_Y = self.entityKeeper.grid_Y
+        #Register the new grid position for the move
         self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
+        #Calculate the destination in world coordinates
         destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
+        #Remember the destination world coordinates in order to perform a smooth transition
         self.define_transition(destination_X, destination_Y)
 
 #TODO Nathan BEGIN
