@@ -6,11 +6,10 @@ import numpy as np
 
 from girlsday_game.entity import PhysicalEntity, Projectile
 
-SCREEN_SIZE_X = 800
-SCREEN_SIZE_Y = 600
-
-
 class Collisions:
+    def __init__(self, game):
+        self.game = game
+
     def collision(selfs, ent1, ent2):
         points1 = [
             (ent1.X, ent1.Y),
@@ -49,14 +48,14 @@ class Collisions:
         #If so, reverse the impulse
         for ent in entities:
             if isinstance(ent, PhysicalEntity):
-                if ent.X < 0 or ent.X > SCREEN_SIZE_X - ent.X_size:
+                if ent.X < 0 or ent.X > self.game.display.screen_size_X - ent.X_size:
                     ent.impulse_X = -ent.impulse_X
                     ent.collided = True
-                if ent.Y < 0 or ent.Y > SCREEN_SIZE_Y - ent.Y_size:
+                if ent.Y < 0 or ent.Y > self.game.display.screen_size_Y - ent.Y_size:
                     ent.impulse_Y = -ent.impulse_Y
                     ent.collided = True
-                ent.X = np.clip(ent.X, 0, SCREEN_SIZE_X - ent.X_size)
-                ent.Y = np.clip(ent.Y, 0, SCREEN_SIZE_Y - ent.Y_size)
+                ent.X = np.clip(ent.X, 0, self.game.display.screen_size_X - ent.X_size)
+                ent.Y = np.clip(ent.Y, 0, self.game.display.screen_size_Y - ent.Y_size)
         #For every pair of PhysicalEntities, check if they are in a collision
         #If so, they each give eachother a part of their impulse
         for ent1, ent2 in list(itertools.combinations(entities, 2)):

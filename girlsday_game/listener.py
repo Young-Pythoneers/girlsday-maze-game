@@ -4,7 +4,8 @@ import pygame
 
 
 class EventListener:
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
         self.K_LEFT = 0
         self.K_RIGHT = 0
         self.K_UP = 0

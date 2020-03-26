@@ -2,7 +2,8 @@ from pygame import mixer
 
 
 class music:
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
         mixer.music.load("../sounds/funky.wav")
         #mixer.music.play(-1)
 

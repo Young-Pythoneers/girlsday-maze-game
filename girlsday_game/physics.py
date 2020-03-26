@@ -3,19 +3,17 @@ import numpy as np
 from girlsday_game.entity import Entity, PhysicalEntity
 from girlsday_game.listener import EventListener
 
-SCREEN_SIZE_X = 800
-SCREEN_SIZE_Y = 600
-
-
 class Physics:
     """ Class that applies physics to PhysicalEntities
 
     Attributes:
+        game (Game): The game this Physics object lives in
         friction (int): The amount of friction to apply in an arbitrary unit
         grafity (int): The amount of gravity to apply in an arbitrary unit
     """
 
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
         self.friction = 3
         self.gravity = 0
 
@@ -41,7 +39,7 @@ class Physics:
                 ent.impulse_Y /= (
                     1 + (self.friction * event_listener.time_passed) / ent.mass
                 )
-                if ent.Y <= SCREEN_SIZE_Y - ent.Y_size:#This if statement fixes weird behaviour at the screen's bottom.
+                if ent.Y <= self.game.display.screen_size_Y - ent.Y_size:#This if statement fixes weird behaviour at the screen's bottom.
                     #Apply gravity
                     ent.impulse_Y += (
                         self.gravity * ent.mass * event_listener.time_passed

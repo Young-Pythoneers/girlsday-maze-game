@@ -2,7 +2,8 @@ import numpy as np
 from girlsday_game.entity import GridEntity, Tile, Wall, Player
 
 class EntityKeeper:
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
         self.entities = []
 
     def addEntity(self, ent):
@@ -18,7 +19,8 @@ class EntityKeeper:
             ent.update(event_listener)
 
 class GridPoint(EntityKeeper):
-    def __init__(self, entityKeeper, grid_X, grid_Y, zero_X, zero_Y, tile_size, wall_size):
+    def __init__(self, game, entityKeeper, grid_X, grid_Y, zero_X, zero_Y, tile_size, wall_size):
+        self.game = None #A gridpoint does not live inside of a game, but inside of a grid
         self.entities = []
         self.entityKeeper = entityKeeper
         self.grid_X = grid_X
@@ -37,7 +39,8 @@ class GridPoint(EntityKeeper):
         ent.X, ent.Y = self.grid_XY_to_world_XY(self.grid_X, self.grid_Y)
 
 class Grid(EntityKeeper):
-    def __init__(self, size_X, size_Y):
+    def __init__(self, game, size_X, size_Y):
+        self.game = game
         self.entities = []
         self.size_X = size_X
         self.size_Y = size_Y
@@ -45,22 +48,25 @@ class Grid(EntityKeeper):
         self.zero_Y = 50
         self.tile_size = 50
         self.wall_size = 50
-        self.transition_time_counter = 0
+        self.transition_time_counter = 1
         self.transition_time = 0.3
         self.in_transition = False #Are we in a transition state?
         self.play = False#Do we play all commands in the player's queue?
         self.player = None #can be removed in future
         self.input_cooldown = 0.3  # can be removed in future
         self.input_cooldown_timer = 0 # can be removed in future
+
+        #Create the grid
         self.grid = []
         for i in range(self.size_Y):
             grid_row = []
             for j in range(self.size_X):
-                gridPoint = GridPoint(self, j, i, self.zero_X, self.zero_Y, self.tile_size, self.wall_size)
+                gridPoint = GridPoint(self, None, j, i, self.zero_X, self.zero_Y, self.tile_size, self.wall_size)
                 gridPoint.entityKeeper = self
                 grid_row.append(gridPoint)
             self.grid.append(grid_row)
 
+        #Fill the grid with Tiles and Walls
         for i in range(self.size_Y // 2):
             for j in range(self.size_X // 2):
                 self.addGridEntity(Tile(), j * 2 + 1, i * 2 + 1)
@@ -81,6 +87,7 @@ class Grid(EntityKeeper):
         self.entities.remove(ent)
 
     def updateEntities(self, event_listener):
+        #Check the event_listener to see if there is keyboard input
         if not self.play and self.input_cooldown_timer >= self.input_cooldown and (event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
             X_change = 0
             Y_change = 0
@@ -92,17 +99,30 @@ class Grid(EntityKeeper):
                 Y_change -= 2
             if event_listener.K_DOWN:
                 Y_change += 2
+            #If there is input, apply the input by putting a command on the player's queue
             self.player.command_queue.append((X_change, Y_change))
-            print(self.player.command_queue)
+            #Set the input_cooldown_timer to better separate individual key presses
             self.input_cooldown_timer = 0
-
-        if not self.in_transition and (event_listener.K_SPACE or self.play):
-            self.play = True
-            self.begin_transition()
-        self.transition_time_counter += event_listener.time_passed
+        #Increment the cooldown timer with the amount of time passed in the previous loop
         self.input_cooldown_timer += event_listener.time_passed
-        if self.transition_time_counter >= self.transition_time:
-            self.end_transition()
+
+        #Check if we did not allready start a transition and we are in play mode.
+        #If the space bar is pressed when not in a transition, we want to start the play mode.
+        #We should not be in the transition mode, because a new transition is initialized
+        #A currently running transition should first finish
+        if not self.in_transition and (event_listener.K_SPACE or self.play):
+            #Set behaviour to play mode. The player can end the play mode once its commands queue is empty
+            self.play = True
+            #Begin a new transition phase
+            self.begin_transition()
+
+        #If we are in a transition manage its timer and check if the transition should be stopped
+        if self.in_transition:
+            self.transition_time_counter += event_listener.time_passed
+            if self.transition_time_counter >= self.transition_time:
+                self.end_transition()
+
+        #Ask all entities to update their world coordinates and to do whatever they do
         for ent in self.entities:
             ent.update(event_listener)
 

@@ -8,28 +8,16 @@ from girlsday_game.listener import EventListener
 from girlsday_game.music import music
 from girlsday_game.physics import Physics
 
-SCREEN_SIZE_X = 800
-SCREEN_SIZE_Y = 600
-
-
 class Game:
     def __init__(self):
         # initialize pygame
         pygame.init()
+        self.display = Display(self, 800, 600)
 
-        # Create screen
-        self.screen = pygame.display.set_mode((SCREEN_SIZE_X, SCREEN_SIZE_Y))
+        self.event_listener = EventListener(self)
+        self.grid = Grid(self, 15, 11)
 
-        # Caption and Icon
-        pygame.display.set_caption("Turtle VS Achilles")
-        icon = pygame.image.load("../images/turtle_icon.png")
-        pygame.display.set_icon(icon)
-        pygame.mouse.set_visible(1)
-
-        self.event_listener = EventListener()
-        self.grid = Grid(15, 11)
-
-        self.music = music()
+        self.music = music(self)
 
         goal = Goal()
         self.grid.addGridEntity(goal, 5, 5)
@@ -40,14 +28,12 @@ class Game:
         player = Player(goal, score)
         self.grid.addGridEntity(player, 3, 3)
 
-        self.display = Display()
-
     def run(self):
 
         while True:
             do_we_continue = self.event_listener.listen()
             self.grid.updateEntities(self.event_listener)
-            self.display.drawScreen(self.grid.entities, self.screen)
+            self.display.drawScreen(self.grid.entities)
 
             if not do_we_continue is None:
                 break

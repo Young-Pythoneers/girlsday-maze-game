@@ -4,9 +4,6 @@ from numpy.random import uniform
 import pygame
 from girlsday_game.music import music
 
-SCREEN_SIZE_X = 800
-SCREEN_SIZE_Y = 600
-
 class Entity:
     def __init__(self, entityKeeper = None):
         if entityKeeper is None:
@@ -163,7 +160,7 @@ class Player(GridEntity):
         self.transition_stop_Y = 0
         self.transition_function = lambda x : -np.cos(np.pi * x / 2) + 1
 
-        self.command_queue = []
+        self.command_queue = []#TODO Replace this by a Program instance in the future
         self.score = Score
         self.goal = Goal
 
