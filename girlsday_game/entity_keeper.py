@@ -39,11 +39,11 @@ class GridPoint(EntityKeeper):
         ent.X, ent.Y = self.grid_XY_to_world_XY(self.grid_X, self.grid_Y)
 
 class Grid(EntityKeeper):
-    def __init__(self, game, size_X, size_Y):
+    def __init__(self, game):
         self.game = game
         self.entities = []
-        self.size_X = size_X
-        self.size_Y = size_Y
+        self.size_X = 0
+        self.size_Y = 0
         self.zero_X = 50
         self.zero_Y = 50
         self.tile_size = 50
@@ -56,6 +56,21 @@ class Grid(EntityKeeper):
         self.input_cooldown = 0.3  # can be removed in future
         self.input_cooldown_timer = 0 # can be removed in future
 
+        lvl1 = np.array([
+            "wwwwwwwwwwwwwww",
+            "wtntntntntntntw",
+            "wnwwwwwwwwwwwnw",
+            "wtwtntntntntwtw",
+            "wnwnwwwwwwwnwnw",
+            "wtwtwtntntntwtw",
+            "wnwnwwwwwwwwwnw",
+            "wtwtntntntntntw",
+            "wwwwwwwwwwwwwww",
+        ])
+
+        self.size_X = len(lvl1[0])
+        self.size_Y = len(lvl1)
+
         #Create the grid
         self.grid = []
         for i in range(self.size_Y):
@@ -66,57 +81,22 @@ class Grid(EntityKeeper):
                 grid_row.append(gridPoint)
             self.grid.append(grid_row)
 
-        #Fill the grid with Tiles and Walls
-        for i in range(self.size_Y // 2):
-            for j in range(self.size_X // 2):
-                self.addGridEntity(Tile(), j * 2 + 1, i * 2 + 1)
-        for i in range(self.size_Y):
-            for j in range(self.size_X):
-                self.addGridEntity(Wall(self.grid[i][j]), j, i)
-
-        lvl1 = np.array([
-            "chhhhhhhhhhhhhv",
-            "v              ",
-            "               ",
-            "               ",
-            "               ",
-            "               ",
-            "               ",
-            "               ",
-            "               ",
-            "               ",
-            "               "
-        ])
-
         coords = []
         for y in range(self.size_Y):
             for x in range(self.size_X):
                 coords.append((x,y))
 
-        for section in lvl1:
-            for character in zip(range(len(section)),coords):
-                single_letter = section[character[0]]
-                coordx = character[1][0]
-                coordy = character[1][1]
+        # Fill the grid with Tiles and Walls
+        for i in range(len(lvl1)):
+            for j in range(len(lvl1[i])):
+                single_letter = lvl1[i][j]
 
-                if single_letter == "c":
-                    self.width = 40
-                    self.depth = 40
-
-
-                elif single_letter == "v":
-                    self.width = 10
-                    self.depth = 60
-
-
-                elif single_letter == "h":
-                    self.width = 60
-                    self.depth = 10
-
-
-                else:
-                    self.width = 0
-                    self.depth = 0
+                if single_letter == "w":
+                    self.addGridEntity(Wall(self.grid[i][j]), j, i)
+                elif single_letter == "t":
+                    self.addGridEntity(Tile(self.grid[i][j]), j, i)
+                elif single_letter == "n":
+                    pass
 
 
     def addGridEntity(self, ent, grid_X, grid_Y):

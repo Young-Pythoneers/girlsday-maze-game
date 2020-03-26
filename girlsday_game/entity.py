@@ -4,8 +4,9 @@ from numpy.random import uniform
 import pygame
 from girlsday_game.music import music
 
+
 class Entity:
-    def __init__(self, entityKeeper = None):
+    def __init__(self, entityKeeper=None):
         if entityKeeper is None:
             self.entityKeeper = None
         else:
@@ -40,7 +41,7 @@ class GridEntity(Entity):
         self.transition_start_Y = 0
         self.transition_stop_X = 0
         self.transition_stop_Y = 0
-        self.transition_function = lambda x : x
+        self.transition_function = lambda x: x
 
     def update(self, event_listener):
         if self.entityKeeper.entityKeeper.in_transition:
@@ -48,8 +49,10 @@ class GridEntity(Entity):
 
     def transition(self, event_listener):
         time_fraction = self.entityKeeper.entityKeeper.transition_time_counter / self.entityKeeper.entityKeeper.transition_time
-        self.X = self.transition_start_X + (self.transition_stop_X - self.transition_start_X) * self.transition_function(time_fraction)
-        self.Y = self.transition_start_Y + (self.transition_stop_Y - self.transition_start_Y) * self.transition_function(time_fraction)
+        self.X = self.transition_start_X + (
+                    self.transition_stop_X - self.transition_start_X) * self.transition_function(time_fraction)
+        self.Y = self.transition_start_Y + (
+                    self.transition_stop_Y - self.transition_start_Y) * self.transition_function(time_fraction)
 
     def define_transition(self, transition_goal_X, transition_goal_Y):
         self.transition_start_X = self.X
@@ -59,6 +62,7 @@ class GridEntity(Entity):
 
     def begin_transition(self):
         pass
+
 
 class Tile(GridEntity):
     def __init__(self, entityKeeper=None):
@@ -90,6 +94,7 @@ class Tile(GridEntity):
     def begin_transition(self):
         pass
 
+
 class Wall(GridEntity):
     def __init__(self, entityKeeper):
         self.entityKeeper = entityKeeper
@@ -98,33 +103,34 @@ class Wall(GridEntity):
         self.width = 0
         self.height = 0
 
-        #TODO Nathan BEGIN
-        #Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
-        #Je zou een class van WallShape kunnen maken, maar het lijkt met niet absoluut nodig
+        # TODO Nathan BEGIN
+        # Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
+        # Je zou een class van WallShape kunnen maken, maar het lijkt met niet absoluut nodig
 
-        # if self.entityKeeper.grid_Y % 2 == 0:
-        #     if self.entityKeeper.grid_X % 2 == 1:
-        #         #Nathan: Horizontaal
-        #         width = 60
-        #         depth = 10
-        #     else:
-        #         #Nathan: Hoekpunt
-        #         width = 40
-        #         depth = 40
-        #
-        # else:
-        #     if self.entityKeeper.grid_X % 2 == 1:
-        #         #Nathan: Op grid waar tile hoort
-        #         width = 0
-        #         depth = 0
-        #     else:
-        #         #Nathan: Verticaal
-        #         width = 10
-        #         depth = 60
-        # self.image = pygame.Surface((width, depth))
-        # self.image.fill((150, 150, 0))
-        # self.X_size = width
-        # self.Y_size = depth
+        if self.entityKeeper.grid_Y % 2 == 0:
+            if self.entityKeeper.grid_X % 2 == 1:
+                # Nathan: Horizontaal
+                width = 60
+                depth = 10
+            else:
+                # Nathan: Hoekpunt
+                width = 40
+                depth = 40
+
+        else:
+            if self.entityKeeper.grid_X % 2 == 1:
+                # Nathan: Op grid waar tile hoort
+                width = 0
+                depth = 0
+            else:
+                # Nathan: Verticaal
+                width = 10
+                depth = 60
+        self.image = pygame.Surface((width, depth))
+        self.image.fill((150, 150, 0))
+        self.X_size = width
+        self.Y_size = depth
+
         # TODO Nathan END
         self.transition_start_X = 0
         self.transition_start_Y = 0
@@ -136,14 +142,18 @@ class Wall(GridEntity):
     def update(self, event_listener):
         pass
 
+
     def transition(self, event_listener):
         pass
+
 
     def define_transition(self, transition_goal_X, transition_goal_Y):
         pass
 
+
     def begin_transition(self):
         pass
+
 
 class Player(GridEntity):
     def __init__(self, Goal, Score, entityKeeper=None):
@@ -157,40 +167,41 @@ class Player(GridEntity):
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
 
-        #variables to track the transition
+        # variables to track the transition
         self.transition_start_X = 0
         self.transition_start_Y = 0
         self.transition_stop_X = 0
         self.transition_stop_Y = 0
-        self.transition_function = lambda x : -np.cos(np.pi * x / 2) + 1
+        self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
 
-        self.command_queue = []#TODO Replace this by a Program instance in the future
+        self.command_queue = []  # TODO Replace this by a Program instance in the future
         self.score = Score
         self.goal = Goal
 
     def update(self, event_listener):
         if self.entityKeeper.entityKeeper.in_transition:
-            #If we are in transition mode, smoothly transition our world coordinates
+            # If we are in transition mode, smoothly transition our world coordinates
             self.transition(event_listener)
         else:
-            #If we are not in transition mode, we can check for interactions
-            #Calculate the distance to the goal
+            # If we are not in transition mode, we can check for interactions
+            # Calculate the distance to the goal
             distance_to_goal = math.sqrt(
-                math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow((self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
+                math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow(
+                    (self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
             if distance_to_goal <= 0.7:
-                #If we are closer than one grid unit to the goal, the goal is eaten and points are scored
+                # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
                 self.goal.eaten = True
                 self.score.score += 1
                 music.sound_handler('../sounds/munch.wav', 0)
-                #TODO Nathan BEGIN
-                #Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
-                #self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
-                #Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
-                #Dan lijkt het al gauw op een explosie
-                #TODO Nathan END
+                # TODO Nathan BEGIN
+                # Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
+                # self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
+                # Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
+                # Dan lijkt het al gauw op een explosie
+                # TODO Nathan END
 
     def begin_transition(self):
-        #Read a command
+        # Read a command
         if len(self.command_queue) > 0:
             # If there is a command on the queue, pop it and do it
             command = self.command_queue.pop(0)
@@ -201,25 +212,27 @@ class Player(GridEntity):
             self.entityKeeper.entityKeeper.play = False
             X_change = 0
             Y_change = 0
-        #calculate the destination of the transition in grid coordinates
+        # calculate the destination of the transition in grid coordinates
         grid_destination_X = self.entityKeeper.grid_X + X_change
         grid_destination_Y = self.entityKeeper.grid_Y + Y_change
-        #Check if the transition to the destination is possible
-        if not self.entityKeeper.entityKeeper.requestMove(self.entityKeeper.grid_X, self.entityKeeper.grid_Y, grid_destination_X, grid_destination_Y):
-            #If the transition is not possible, a transition is still initialized, but with a change of 0.
-            #This way this entity is not moved, but it still waits for one transition interval.
-            #This is needed to synchronize all transitioning entities.
+        # Check if the transition to the destination is possible
+        if not self.entityKeeper.entityKeeper.requestMove(self.entityKeeper.grid_X, self.entityKeeper.grid_Y,
+                                                          grid_destination_X, grid_destination_Y):
+            # If the transition is not possible, a transition is still initialized, but with a change of 0.
+            # This way this entity is not moved, but it still waits for one transition interval.
+            # This is needed to synchronize all transitioning entities.
             grid_destination_X = self.entityKeeper.grid_X
             grid_destination_Y = self.entityKeeper.grid_Y
-        #Register the new grid position for the move
+        # Register the new grid position for the move
         self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
-        #Calculate the destination in world coordinates
+        # Calculate the destination in world coordinates
         destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
-        #Remember the destination world coordinates in order to perform a smooth transition
+        # Remember the destination world coordinates in order to perform a smooth transition
         self.define_transition(destination_X, destination_Y)
 
-#TODO Nathan BEGIN
-#Nathan: Deze functie kan verder uitgebreidt worden
+
+# TODO Nathan BEGIN
+# Nathan: Deze functie kan verder uitgebreidt worden
 class Enemy(GridEntity):
     def __init__(self, entityKeeper=None):
         if entityKeeper is None:
@@ -235,21 +248,23 @@ class Enemy(GridEntity):
         self.transition_start_Y = 0
         self.transition_stop_X = 0
         self.transition_stop_Y = 0
-        self.transition_function = lambda x : x
+        self.transition_function = lambda x: x
 
     def update(self, event_listener):
         if self.entityKeeper.entityKeeper.in_transition:
             self.transition(event_listener)
 
-    #def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
+    # def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
-    #def define_transition(self, transition_goal_X, transition_goal_Y):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
+    # def define_transition(self, transition_goal_X, transition_goal_Y):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
     def begin_transition(self):
-        #Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
-        #Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
+        # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
+        # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         pass
-#TODO Nathan END
+
+
+# TODO Nathan END
 
 class Goal(GridEntity):
     def __init__(self, entityKeeper=None):
@@ -265,7 +280,6 @@ class Goal(GridEntity):
         self.Y_size = self.image.get_size()[0]
         self.eaten = False
 
-
     def update(self, event_listener):
         if self.eaten == True:
             self.respawn()
@@ -273,11 +287,12 @@ class Goal(GridEntity):
 
     def respawn(self):
         while True:
-            grid_X = np.random.randint(0, 7) * 2 + 1
-            grid_Y = np.random.randint(0, 5) * 2 + 1
-            if grid_X != self.entityKeeper.grid_X and grid_Y != self.entityKeeper.grid_Y:
+            grid_X = np.random.randint(0, self.entityKeeper.entityKeeper.size_X // 2) * 2 + 1
+            grid_Y = np.random.randint(0, self.entityKeeper.entityKeeper.size_Y // 2) * 2 + 1
+            if grid_X != self.entityKeeper.grid_X or grid_Y != self.entityKeeper.grid_Y:
                 break
         self.entityKeeper.entityKeeper.moveGridEntity(self, grid_X, grid_Y)
+
 
 class Score(GridEntity):
     def __init__(self, entityKeeper=None):
@@ -323,6 +338,7 @@ class PhysicalEntity(Entity):
     def collision(self):
         ...
 
+
 class Projectile(PhysicalEntity):
     def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
         if entityKeeper is None:
@@ -352,6 +368,7 @@ class Projectile(PhysicalEntity):
     def collision(self):
         self.destroy()
 
+
 class Particle(Projectile):
     def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
         if entityKeeper is None:
@@ -368,7 +385,7 @@ class Particle(Projectile):
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
         self.collided = False
-        self.life_time = 0.25 + uniform(-0.1,0.1)
+        self.life_time = 0.25 + uniform(-0.1, 0.1)
 
     def update(self, event_listener):
         if self.collided:
@@ -376,8 +393,9 @@ class Particle(Projectile):
                 self.destroy()
         self.impulse_X += self.speed * event_listener.time_passed
         self.life_time -= event_listener.time_passed
-        if not self.collided and  self.life_time < 0:
+        if not self.collided and self.life_time < 0:
             self.destroy()
+
 
 class Rocket(Projectile):
     def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
@@ -407,7 +425,6 @@ class Rocket(Projectile):
             self.collided = False
         self.impulse_X += self.speed * event_listener.time_passed
 
-
     def destroy(self):
         self.entityKeeper.removeEntity(self)
 
@@ -416,7 +433,13 @@ class Rocket(Projectile):
 
     def make_particles(self):
         for i in range(self.particle_count):
-            self.entityKeeper.addEntity(Particle(self.entityKeeper, self.X + uniform(-self.spread,self.spread), self.Y + uniform(-self.spread,self.spread), self.impulse_X * self.impulse_multiplier + uniform(-self.impulse_modifier, self.impulse_modifier), self.impulse_Y * self.impulse_multiplier + uniform(-self.impulse_modifier, self.impulse_modifier)))
+            self.entityKeeper.addEntity(Particle(self.entityKeeper, self.X + uniform(-self.spread, self.spread),
+                                                 self.Y + uniform(-self.spread, self.spread),
+                                                 self.impulse_X * self.impulse_multiplier + uniform(
+                                                     -self.impulse_modifier, self.impulse_modifier),
+                                                 self.impulse_Y * self.impulse_multiplier + uniform(
+                                                     -self.impulse_modifier, self.impulse_modifier)))
+
 
 class RocketDuck(PhysicalEntity):
     def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
@@ -442,7 +465,7 @@ class RocketDuck(PhysicalEntity):
             self.collision()
             self.collided = False
         self.angle += (
-            self.turn_speed * np.random.uniform(-1, 1) * event_listener.time_passed
+                self.turn_speed * np.random.uniform(-1, 1) * event_listener.time_passed
         )
         if self.angle < 0:
             self.angle += 2 * np.pi
@@ -450,7 +473,6 @@ class RocketDuck(PhysicalEntity):
             self.angle -= 2 * np.pi
         self.impulse_X += np.cos(self.angle) * self.speed * event_listener.time_passed
         self.impulse_Y += np.sin(self.angle) * self.speed * event_listener.time_passed
-
 
     def collision(self):
         pass

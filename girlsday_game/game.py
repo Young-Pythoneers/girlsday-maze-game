@@ -15,18 +15,18 @@ class Game:
         self.display = Display(self, 800, 600)
 
         self.event_listener = EventListener(self)
-        self.grid = Grid(self, 15, 11)
+        self.grid = Grid(self)
 
         self.music = music(self)
 
         goal = Goal()
-        self.grid.addGridEntity(goal, 5, 5)
+        self.grid.addGridEntity(goal, 3, 1)
 
         score = Score()
         self.grid.addGridEntity(score, 1, 1)
 
         player = Player(goal, score)
-        self.grid.addGridEntity(player, 3, 3)
+        self.grid.addGridEntity(player, 1, 1)
 
     def run(self):
 
