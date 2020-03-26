@@ -95,32 +95,36 @@ class Wall(GridEntity):
         self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
+        self.width = 0
+        self.height = 0
+
         #TODO Nathan BEGIN
         #Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
         #Je zou een class van WallShape kunnen maken, maar het lijkt met niet absoluut nodig
-        if self.entityKeeper.grid_Y % 2 == 0:
-            if self.entityKeeper.grid_X % 2 == 1:
-                #Nathan: Horizontaal
-                width = 60
-                depth = 10
-            else:
-                #Nathan: Hoekpunt
-                width = 40
-                depth = 40
 
-        else:
-            if self.entityKeeper.grid_X % 2 == 1:
-                #Nathan: Op grid waar tile hoort
-                width = 0
-                depth = 0
-            else:
-                #Nathan: Verticaal
-                width = 10
-                depth = 60
-        self.image = pygame.Surface((width, depth))
-        self.image.fill((150, 150, 0))
-        self.X_size = width
-        self.Y_size = depth
+        # if self.entityKeeper.grid_Y % 2 == 0:
+        #     if self.entityKeeper.grid_X % 2 == 1:
+        #         #Nathan: Horizontaal
+        #         width = 60
+        #         depth = 10
+        #     else:
+        #         #Nathan: Hoekpunt
+        #         width = 40
+        #         depth = 40
+        #
+        # else:
+        #     if self.entityKeeper.grid_X % 2 == 1:
+        #         #Nathan: Op grid waar tile hoort
+        #         width = 0
+        #         depth = 0
+        #     else:
+        #         #Nathan: Verticaal
+        #         width = 10
+        #         depth = 60
+        # self.image = pygame.Surface((width, depth))
+        # self.image.fill((150, 150, 0))
+        # self.X_size = width
+        # self.Y_size = depth
         # TODO Nathan END
         self.transition_start_X = 0
         self.transition_start_Y = 0

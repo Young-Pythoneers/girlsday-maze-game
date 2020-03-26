@@ -74,6 +74,51 @@ class Grid(EntityKeeper):
             for j in range(self.size_X):
                 self.addGridEntity(Wall(self.grid[i][j]), j, i)
 
+        lvl1 = np.array([
+            "chhhhhhhhhhhhhv",
+            "v              ",
+            "               ",
+            "               ",
+            "               ",
+            "               ",
+            "               ",
+            "               ",
+            "               ",
+            "               ",
+            "               "
+        ])
+
+        coords = []
+        for y in range(self.size_Y):
+            for x in range(self.size_X):
+                coords.append((x,y))
+
+        for section in lvl1:
+            for character in zip(range(len(section)),coords):
+                single_letter = section[character[0]]
+                coordx = character[1][0]
+                coordy = character[1][1]
+
+                if single_letter == "c":
+                    self.width = 40
+                    self.depth = 40
+
+
+                elif single_letter == "v":
+                    self.width = 10
+                    self.depth = 60
+
+
+                elif single_letter == "h":
+                    self.width = 60
+                    self.depth = 10
+
+
+                else:
+                    self.width = 0
+                    self.depth = 0
+
+
     def addGridEntity(self, ent, grid_X, grid_Y):
         if isinstance(ent, Player):
             self.player = ent
