@@ -129,7 +129,6 @@ class Grid(EntityKeeper):
         #We should not be in the transition mode, because a new transition is initialized
         #A currently running transition should first finish
         if not self.in_transition and (event_listener.K_SPACE or self.play):
-            print("begin transition")
             #Set behaviour to play mode. The player can end the play mode once its commands queue is empty
             self.play = True
             #Begin a new transition phase

@@ -3,6 +3,7 @@ import numpy as np
 from numpy.random import uniform
 import pygame
 from girlsday_game.music import music
+from girlsday_game.transition import CosTransition, InstantTransition
 
 
 class Entity:
@@ -37,28 +38,11 @@ class GridEntity(Entity):
         self.image = None
         self.X_size = 0
         self.Y_size = 0
-        self.transition_start_X = 0
-        self.transition_start_Y = 0
-        self.transition_stop_X = 0
-        self.transition_stop_Y = 0
-        self.transition_function = lambda x: x
+        self.transition = CosTransition()
 
     def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
-            self.transition(event_listener, timer_keeper)
-
-    def transition(self, event_listener, timer_keeper):
-        time_fraction = self.entityKeeper.entityKeeper.transition_timer.timer / self.entityKeeper.entityKeeper.transition_timer.timer_duration
-        self.X = self.transition_start_X + (
-                    self.transition_stop_X - self.transition_start_X) * self.transition_function(time_fraction)
-        self.Y = self.transition_start_Y + (
-                    self.transition_stop_Y - self.transition_start_Y) * self.transition_function(time_fraction)
-
-    def define_transition(self, transition_goal_X, transition_goal_Y):
-        self.transition_start_X = self.X
-        self.transition_start_Y = self.Y
-        self.transition_stop_X = transition_goal_X
-        self.transition_stop_Y = transition_goal_Y
+            self.transition.transition(event_listener, timer_keeper)
 
     def begin_transition(self):
         pass
@@ -76,16 +60,9 @@ class Tile(GridEntity):
         self.image.fill((255, 0, 0))
         self.X_size = 50
         self.Y_size = 50
-        self.transition_start_X = 0
-        self.transition_start_Y = 0
-        self.transition_stop_X = 0
-        self.transition_stop_Y = 0
-        self.transition_function = None
+        self.transition = None
 
     def update(self, event_listener, timer_keeper):
-        pass
-
-    def transition(self, event_listener, timer_keeper):
         pass
 
     def define_transition(self, transition_goal_X, transition_goal_Y):
@@ -130,12 +107,7 @@ class Wall(GridEntity):
         self.Y_size = depth
 
         # TODO Nathan END
-        self.transition_start_X = 0
-        self.transition_start_Y = 0
-        self.transition_stop_X = 0
-        self.transition_stop_Y = 0
-        self.transition_function = None
-
+        self.transition = None
 
     def update(self, event_listener, timer_keeper):
         pass
@@ -166,11 +138,7 @@ class Player(GridEntity):
         self.Y_size = self.image.get_size()[0]
 
         # variables to track the transition
-        self.transition_start_X = 0
-        self.transition_start_Y = 0
-        self.transition_stop_X = 0
-        self.transition_stop_Y = 0
-        self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
+        self.transition = CosTransition(self)
 
         self.command_queue = []  # TODO Replace this by a Program instance in the future
         self.score = Score
@@ -179,27 +147,25 @@ class Player(GridEntity):
     def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition(event_listener, timer_keeper)
-        else:
-            # If we are not in transition mode, we can check for interactions
-            # Calculate the distance to the goal
-            distance_to_goal = math.sqrt(
-                math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow(
-                    (self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
-            if distance_to_goal <= 0.7:
-                # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
-                self.goal.eaten = True
-                self.score.score += 1
-                music.sound_handler('../sounds/munch.wav', 0)
-                # TODO Nathan BEGIN
-                # Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
-                # self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
-                # Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
-                # Dan lijkt het al gauw op een explosie
-                # TODO Nathan END
+            self.transition.transition(event_listener, timer_keeper)
+        # If we are not in transition mode, we can check for interactions
+        # Calculate the distance to the goal
+        distance_to_goal = math.sqrt(
+            math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow(
+                (self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
+        if distance_to_goal <= 0.7:
+            # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
+            self.goal.eaten = True
+            self.score.score += 1
+            music.sound_handler('../sounds/munch.wav', 0)
+            # TODO Nathan BEGIN
+            # Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
+            # self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
+            # Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
+            # Dan lijkt het al gauw op een explosie
+            # TODO Nathan END
 
     def begin_transition(self):
-        print("turtle")
         # Read a command
         if len(self.command_queue) > 0:
             # If there is a command on the queue, pop it and do it
@@ -228,7 +194,7 @@ class Player(GridEntity):
         # Calculate the destination in world coordinates
         destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
         # Remember the destination world coordinates in order to perform a smooth transition
-        self.define_transition(destination_X, destination_Y)
+        self.transition.define_transition(self.X, self.Y, destination_X, destination_Y)
 
 
 # TODO Nathan BEGIN
@@ -246,11 +212,7 @@ class Enemy(GridEntity):
         self.Y_size = self.image.get_size()[0]
 
         # variables to track the transition
-        self.transition_start_X = 0
-        self.transition_start_Y = 0
-        self.transition_stop_X = 0
-        self.transition_stop_Y = 0
-        self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
+        self.transition = CosTransition(self)
         self.player = Player
 
         self.command_queue = [[2,0],[-2,0],[2,0], [-2,0]]  # TODO Replace this by a Program instance in the future
@@ -268,20 +230,16 @@ class Enemy(GridEntity):
     def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition(event_listener, timer_keeper)
+            self.transition.transition(event_listener, timer_keeper)
 
     # def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
     # def define_transition(self, transition_goal_X, transition_goal_Y):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
     def begin_transition(self):
-        print("minotaur")
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
-
-        print(self.command_queue)
-
         #TODO uitleg: gebruik de huidige command_index om het commando op te halen
         X_change = self.command_queue[self.command_index][0]
         Y_change = self.command_queue[self.command_index][1]
@@ -306,7 +264,7 @@ class Enemy(GridEntity):
         # Calculate the destination in world coordinates
         destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
         # Remember the destination world coordinates in order to perform a smooth transition
-        self.define_transition(destination_X, destination_Y)
+        self.transition.define_transition(self.X, self.Y, destination_X, destination_Y)
 
         if self.entityKeeper.grid_X == self.player.entityKeeper.grid_X:
             # then we have a collision between player and enemy
