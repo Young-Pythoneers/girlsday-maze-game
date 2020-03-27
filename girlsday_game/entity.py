@@ -260,7 +260,7 @@ class Goal(GridEntity):
         #print(self.eaten)
 
     def end_transition(self, timer_keeper):
-        print("ending goal transition")
+        #print("ending goal transition")
         if self.eaten == True:
             self.player.score.score += 1
             self.player.score.score += 1

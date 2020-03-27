@@ -160,24 +160,15 @@ class Grid(EntityKeeper):
         #print(self.grid[grid_destination_Y][grid_destination_X])
 
         self.player_with_in_grid = grid_destination_X >= 0 and grid_destination_X < self.size_X and grid_destination_Y >= 0 and grid_destination_Y < self.size_Y
+        self.player_wall_collsion = [(grid_destination_X + grid_source_X)/2, (grid_destination_Y + grid_source_Y)/2] in self.all_walls
 
-        for x in self.all_walls:
-            distance_wall_destination = math.sqrt(
-                math.pow((x[0] - grid_destination_X), 2) + math.pow(
-                    (x[1] - grid_destination_Y), 2))
+        if self.player_wall_collsion == True:
+            self.player_wall_collsion = False
+        else:
+            self.player_wall_collsion = True
+        print(self.player_wall_collsion)
 
-            distance_wall_source = math.sqrt(
-                math.pow((x[0] - grid_source_X), 2) + math.pow(
-                    (x[1] - grid_source_Y), 2))
-
-
-            #print(distance_wall_destination == distance_wall_source)
-        print((grid_destination_X - grid_source_X))
-
-        #print([grid_destination_X, grid_destination_Y])
-        #print(self.all_walls)
-
-        return self.player_with_in_grid
+        return self.player_with_in_grid and self.player_wall_collsion
 
 
 
