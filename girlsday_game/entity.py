@@ -182,6 +182,7 @@ class Enemy(GridEntity):
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
+
         #TODO uitleg: gebruik de huidige command_index om het commando op te halen
         X_change = self.command_queue[self.command_index][0]
         Y_change = self.command_queue[self.command_index][1]
