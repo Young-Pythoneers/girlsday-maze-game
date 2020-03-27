@@ -48,8 +48,7 @@ class Grid(EntityKeeper):
         self.zero_Y = 50
         self.tile_size = 50
         self.wall_size = 50
-        self.transition_time_counter = 1
-        self.transition_cooldown = 0.8
+        self.transition_cooldown = 0.3
         self.transition_timer = timer_keeper.addTimer(0)
         self.in_transition = False #Are we in a transition state?
         self.play = False#Do we play all commands in the player's queue?
@@ -136,7 +135,7 @@ class Grid(EntityKeeper):
 
         #If we are in a transition manage its timer and check if the transition should be stopped
         if self.transition_timer.check_timer() and self.in_transition:
-                self.end_transition()
+                self.end_transition(timer_keeper)
 
         #Ask all entities to update their world coordinates and to do whatever they do
         for ent in self.entities:
@@ -162,8 +161,8 @@ class Grid(EntityKeeper):
             if isinstance(ent, GridEntity):
                 ent.begin_transition()
 
-    def end_transition(self):
+    def end_transition(self, timer_keeper):
         self.in_transition = False
         for ent in self.entities:
             if isinstance(ent, GridEntity):
-                ent.entityKeeper.set_grid_XY_to_world_XY(ent)
+                ent.end_transition(timer_keeper)

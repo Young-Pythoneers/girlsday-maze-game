@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import uniform
 import pygame
 from girlsday_game.music import music
-from girlsday_game.transition import CosTransition, InstantTransition
+from girlsday_game.transition import CosTransition, InstantTransition, WobblyTransition
 
 
 class Entity:
@@ -38,14 +38,17 @@ class GridEntity(Entity):
         self.image = None
         self.X_size = 0
         self.Y_size = 0
-        self.transition = CosTransition()
+        self.transition = None
 
     def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
             self.transition.transition(event_listener, timer_keeper)
 
     def begin_transition(self):
-        pass
+        ...
+
+    def end_transition(self, timer_keeper):
+        self.entityKeeper.set_grid_XY_to_world_XY(self)
 
 
 class Tile(GridEntity):
@@ -63,9 +66,6 @@ class Tile(GridEntity):
         self.transition = None
 
     def update(self, event_listener, timer_keeper):
-        pass
-
-    def define_transition(self, transition_goal_X, transition_goal_Y):
         pass
 
     def begin_transition(self):
@@ -112,21 +112,12 @@ class Wall(GridEntity):
     def update(self, event_listener, timer_keeper):
         pass
 
-
-    def transition(self, event_listener, timer_keeper):
-        pass
-
-
-    def define_transition(self, transition_goal_X, transition_goal_Y):
-        pass
-
-
     def begin_transition(self):
         pass
 
 
 class Player(GridEntity):
-    def __init__(self, Goal, Score, entityKeeper=None):
+    def __init__(self, goal, score, entityKeeper=None):
         if entityKeeper is None:
             self.entityKeeper = None
         else:
@@ -138,32 +129,30 @@ class Player(GridEntity):
         self.Y_size = self.image.get_size()[0]
 
         # variables to track the transition
-        self.transition = CosTransition(self)
+        self.transition = WobblyTransition(self)
 
         self.command_queue = []  # TODO Replace this by a Program instance in the future
-        self.score = Score
-        self.goal = Goal
+        self.score = score
+        self.goal = goal
+        self.goal.player = self
 
     def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
             self.transition.transition(event_listener, timer_keeper)
-        # If we are not in transition mode, we can check for interactions
-        # Calculate the distance to the goal
-        distance_to_goal = math.sqrt(
-            math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow(
-                (self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
-        if distance_to_goal <= 0.7:
-            # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
-            self.goal.eaten = True
-            self.score.score += 1
-            music.sound_handler('../sounds/munch.wav', 0)
-            # TODO Nathan BEGIN
-            # Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
-            # self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
-            # Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
-            # Dan lijkt het al gauw op een explosie
-            # TODO Nathan END
+            # Calculate the distance to the goal
+            distance_to_goal = math.sqrt(
+                math.pow((self.entityKeeper.grid_X - self.goal.entityKeeper.grid_X), 2) + math.pow(
+                    (self.entityKeeper.grid_Y - self.goal.entityKeeper.grid_Y), 2))
+            if distance_to_goal <= 0.7:
+                # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
+                self.goal.eaten = True
+                # TODO Nathan BEGIN
+                # Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
+                # self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
+                # Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
+                # Dan lijkt het al gauw op een explosie
+                # TODO Nathan END
 
     def begin_transition(self):
         # Read a command
@@ -181,20 +170,8 @@ class Player(GridEntity):
         # calculate the destination of the transition in grid coordinates
         grid_destination_X = self.entityKeeper.grid_X + X_change
         grid_destination_Y = self.entityKeeper.grid_Y + Y_change
-        # Check if the transition to the destination is possible
-        if not self.entityKeeper.entityKeeper.requestMove(self.entityKeeper.grid_X, self.entityKeeper.grid_Y,
-                                                          grid_destination_X, grid_destination_Y):
-            # If the transition is not possible, a transition is still initialized, but with a change of 0.
-            # This way this entity is not moved, but it still waits for one transition interval.
-            # This is needed to synchronize all transitioning entities.
-            grid_destination_X = self.entityKeeper.grid_X
-            grid_destination_Y = self.entityKeeper.grid_Y
-        # Register the new grid position for the move
-        self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
-        # Calculate the destination in world coordinates
-        destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
-        # Remember the destination world coordinates in order to perform a smooth transition
-        self.transition.define_transition(self.X, self.Y, destination_X, destination_Y)
+        #Define where the transition should stop, shit will also check if the move is possible
+        self.transition.define_transition(grid_destination_X, grid_destination_Y)
 
 
 # TODO Nathan BEGIN
@@ -252,19 +229,8 @@ class Enemy(GridEntity):
 
         grid_destination_X = self.entityKeeper.grid_X + X_change
         grid_destination_Y = self.entityKeeper.grid_Y + Y_change
-        if not self.entityKeeper.entityKeeper.requestMove(self.entityKeeper.grid_X, self.entityKeeper.grid_Y,
-                                                          grid_destination_X, grid_destination_Y):
-            # If the transition is not possible, a transition is still initialized, but with a change of 0.
-            # This way this entity is not moved, but it still waits for one transition interval.
-            # This is needed to synchronize all transitioning entities.
-            grid_destination_X = self.entityKeeper.grid_X
-            grid_destination_Y = self.entityKeeper.grid_Y
-        # Register the new grid position for the move
-        self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
-        # Calculate the destination in world coordinates
-        destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
-        # Remember the destination world coordinates in order to perform a smooth transition
-        self.transition.define_transition(self.X, self.Y, destination_X, destination_Y)
+        # Define where the transition should stop, shit will also check if the move is possible
+        self.transition.define_transition(grid_destination_X, grid_destination_Y)
 
         if self.entityKeeper.grid_X == self.player.entityKeeper.grid_X:
             # then we have a collision between player and enemy
@@ -286,12 +252,22 @@ class Goal(GridEntity):
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
         self.eaten = False
+        self.player = None
 
     def update(self, event_listener, timer_keeper):
+        pass
+        #print(self.eaten)
+
+    def end_transition(self, timer_keeper):
+        print("ending goal transition")
         if self.eaten == True:
+            self.player.score.score += 1
+            self.player.score.score += 1
+            music.sound_handler('../sounds/munch.wav', 0)
             self.make_explosion(timer_keeper)
             self.respawn()
             self.eaten = False
+        self.entityKeeper.set_grid_XY_to_world_XY(self)
 
     def make_explosion(self, timer_keeper):
         for i in range(20):
