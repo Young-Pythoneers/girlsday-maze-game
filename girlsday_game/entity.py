@@ -264,7 +264,7 @@ class Enemy(GridEntity):
     def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition(event_listener)
+            self.transition(event_listener, timer_keeper)
 
     # def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
