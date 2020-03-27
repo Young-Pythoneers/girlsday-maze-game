@@ -11,9 +11,6 @@ class EventListener:
         self.K_UP = 0
         self.K_DOWN = 0
         self.K_SPACE = 0
-        self.previous_time = time()
-        self.current_time = time()
-        self.time_passed = self.current_time - self.previous_time
 
     def listen(self):
         for event in pygame.event.get():
@@ -43,7 +40,3 @@ class EventListener:
                     self.K_DOWN = 1
                 if event.key == pygame.K_SPACE:
                     self.K_SPACE = 1
-
-        self.previous_time = self.current_time
-        self.current_time = time()
-        self.time_passed = self.current_time - self.previous_time

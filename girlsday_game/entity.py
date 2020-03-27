@@ -43,12 +43,12 @@ class GridEntity(Entity):
         self.transition_stop_Y = 0
         self.transition_function = lambda x: x
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
-            self.transition(event_listener)
+            self.transition(event_listener, timer_keeper)
 
-    def transition(self, event_listener):
-        time_fraction = self.entityKeeper.entityKeeper.transition_time_counter / self.entityKeeper.entityKeeper.transition_time
+    def transition(self, event_listener, timer_keeper):
+        time_fraction = self.entityKeeper.entityKeeper.transition_timer.timer / self.entityKeeper.entityKeeper.transition_timer.timer_duration
         self.X = self.transition_start_X + (
                     self.transition_stop_X - self.transition_start_X) * self.transition_function(time_fraction)
         self.Y = self.transition_start_Y + (
@@ -82,10 +82,10 @@ class Tile(GridEntity):
         self.transition_stop_Y = 0
         self.transition_function = None
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         pass
 
-    def transition(self, event_listener):
+    def transition(self, event_listener, timer_keeper):
         pass
 
     def define_transition(self, transition_goal_X, transition_goal_Y):
@@ -137,11 +137,11 @@ class Wall(GridEntity):
         self.transition_function = None
 
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         pass
 
 
-    def transition(self, event_listener):
+    def transition(self, event_listener, timer_keeper):
         pass
 
 
@@ -176,10 +176,10 @@ class Player(GridEntity):
         self.score = Score
         self.goal = Goal
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition(event_listener)
+            self.transition(event_listener, timer_keeper)
         else:
             # If we are not in transition mode, we can check for interactions
             # Calculate the distance to the goal
@@ -248,7 +248,7 @@ class Enemy(GridEntity):
         self.transition_stop_Y = 0
         self.transition_function = lambda x: x
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.entityKeeper.entityKeeper.in_transition:
             self.transition(event_listener)
 
@@ -278,16 +278,17 @@ class Goal(GridEntity):
         self.Y_size = self.image.get_size()[0]
         self.eaten = False
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.eaten == True:
-            self.make_explosion()
+            self.make_explosion(timer_keeper)
             self.respawn()
             self.eaten = False
-    def make_explosion(self):
-        for i in range(10):
+
+    def make_explosion(self, timer_keeper):
+        for i in range(20):
             angle = uniform(0,2 * np.pi)
             magnitude = uniform(4,6)
-            particle = Particle(self.X, self.Y, np.cos(angle) * magnitude, np.sin(angle) * magnitude)
+            particle = Particle(self.X, self.Y, np.cos(angle) * magnitude, np.sin(angle) * magnitude, timer_keeper)
             self.entityKeeper.entityKeeper.addEntity(particle)
 
     def respawn(self):
@@ -314,7 +315,7 @@ class Score(GridEntity):
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         score = self.font.render("Score : " + str(self.score), True, (0, 0, 0))
         self.image = score
 
@@ -337,7 +338,7 @@ class PhysicalEntity(Entity):
         self.Y_size = 0
         self.collided = False
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         ...
 
     def collision(self):
@@ -361,11 +362,11 @@ class Projectile(PhysicalEntity):
         self.Y_size = 0
         self.collided = False
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.collided:
             self.collision()
             self.collided = False
-        self.impulse_X += self.speed * event_listener.time_passed
+        self.impulse_X += self.speed * timer_keeper.time_passed
 
     def destroy(self):
         self.entityKeeper.removeEntity(self)
@@ -375,7 +376,7 @@ class Projectile(PhysicalEntity):
 
 
 class Particle(Projectile):
-    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+    def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper, entityKeeper=None):
         if entityKeeper is None:
             self.entityKeeper = None
         else:
@@ -390,14 +391,13 @@ class Particle(Projectile):
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
         self.collided = False
-        self.life_time = 1 + uniform(-0.2, 0.2)
+        self.timer = timer_keeper.addTimer(1 + uniform(-0.2, 0.2))
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.collided:
             self.collided = False
-        self.impulse_X += self.speed * event_listener.time_passed
-        self.life_time -= event_listener.time_passed
-        if self.life_time < 0:
+        self.impulse_X += self.speed * timer_keeper.time_passed
+        if self.timer.check_timer():
             self.destroy()
 
 
@@ -422,12 +422,12 @@ class Rocket(Projectile):
         self.impulse_modifier = 1
         self.impulse_multiplier = 0.1
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.collided:
             self.make_particles()
             self.destroy()
             self.collided = False
-        self.impulse_X += self.speed * event_listener.time_passed
+        self.impulse_X += self.speed * timer_keeper.time_passed
 
     def destroy(self):
         self.entityKeeper.removeEntity(self)
@@ -464,19 +464,19 @@ class RocketDuck(PhysicalEntity):
         self.turn_speed = 50
         self.collided = False
 
-    def update(self, event_listener):
+    def update(self, event_listener, timer_keeper):
         if self.collided:
             self.collision()
             self.collided = False
         self.angle += (
-                self.turn_speed * np.random.uniform(-1, 1) * event_listener.time_passed
+                self.turn_speed * np.random.uniform(-1, 1) * timer_keeper.time_passed
         )
         if self.angle < 0:
             self.angle += 2 * np.pi
         if self.angle > 2 * np.pi:
             self.angle -= 2 * np.pi
-        self.impulse_X += np.cos(self.angle) * self.speed * event_listener.time_passed
-        self.impulse_Y += np.sin(self.angle) * self.speed * event_listener.time_passed
+        self.impulse_X += np.cos(self.angle) * self.speed * timer_keeper.time_passed
+        self.impulse_Y += np.sin(self.angle) * self.speed * timer_keeper.time_passed
 
     def collision(self):
         pass

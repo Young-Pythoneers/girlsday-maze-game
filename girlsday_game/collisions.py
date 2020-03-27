@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-from girlsday_game.entity import PhysicalEntity, Projectile, Tile, Player, Goal, Wall
+from girlsday_game.entity import PhysicalEntity, Projectile, Tile, Player, Goal, Wall, Score
 
 class Collisions:
     def __init__(self, game):
@@ -13,7 +13,7 @@ class Collisions:
     def collision(selfs, ent1, ent2):
         penetration = 0
         distance = math.sqrt(math.pow(ent1.X - ent2.X, 2) + math.pow(ent1.Y - ent2.Y, 2))
-        if  distance > 100:
+        if  distance > 50:
             return False, 0
         points1 = [
             (ent1.X, ent1.Y),
@@ -66,7 +66,8 @@ class Collisions:
             if (not (isinstance(ent1, Projectile) and isinstance(ent2, Projectile)) and
                     (not (isinstance(ent1, Tile) or isinstance(ent2, Tile))) and
                     (not (isinstance(ent1, Player) or isinstance(ent2, Player))) and
-                    (not (isinstance(ent1, Goal) or isinstance(ent2, Goal)))):
+                    (not (isinstance(ent1, Goal) or isinstance(ent2, Goal))) and
+                    (not (isinstance(ent1, Score) or isinstance(ent2, Score)))):
                 collided, distance = self.collision(ent1, ent2)
                 if collided:
                     if isinstance(ent1, PhysicalEntity):

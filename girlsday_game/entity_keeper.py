@@ -39,7 +39,7 @@ class GridPoint(EntityKeeper):
         ent.X, ent.Y = self.grid_XY_to_world_XY(self.grid_X, self.grid_Y)
 
 class Grid(EntityKeeper):
-    def __init__(self, game):
+    def __init__(self, game, timer_keeper):
         self.game = game
         self.entities = []
         self.size_X = 0
@@ -49,12 +49,13 @@ class Grid(EntityKeeper):
         self.tile_size = 50
         self.wall_size = 50
         self.transition_time_counter = 1
-        self.transition_time = 0.3
+        self.transition_cooldown = 0.3
+        self.transition_timer = timer_keeper.addTimer(0)
         self.in_transition = False #Are we in a transition state?
         self.play = False#Do we play all commands in the player's queue?
         self.player = None #can be removed in future
         self.input_cooldown = 0.3  # can be removed in future
-        self.input_cooldown_timer = 0 # can be removed in future
+        self.input_timer = timer_keeper.addTimer(0)# can be removed in future
 
         lvl1 = np.array([
             "wwwwwwwwwwwwwww",
@@ -97,7 +98,6 @@ class Grid(EntityKeeper):
     def addGridEntity(self, ent, grid_X, grid_Y):
         if isinstance(ent, Player):
             self.player = ent
-        ent.transition_time = self.transition_time
         self.entities.append(ent)
         self.grid[grid_Y][grid_X].addEntity(ent)
         self.grid[grid_Y][grid_X].set_grid_XY_to_world_XY(ent)
@@ -106,9 +106,9 @@ class Grid(EntityKeeper):
         ent.entityKeeper.removeEntity(ent)
         self.entities.remove(ent)
 
-    def updateEntities(self, event_listener):
+    def updateEntities(self, event_listener, timer_keeper):
         #Check the event_listener to see if there is keyboard input
-        if not self.play and self.input_cooldown_timer >= self.input_cooldown and (event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
+        if self.input_timer.check_timer() and not self.play  and (event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
             X_change = 0
             Y_change = 0
             if event_listener.K_LEFT:
@@ -122,9 +122,7 @@ class Grid(EntityKeeper):
             #If there is input, apply the input by putting a command on the player's queue
             self.player.command_queue.append((X_change, Y_change))
             #Set the input_cooldown_timer to better separate individual key presses
-            self.input_cooldown_timer = 0
-        #Increment the cooldown timer with the amount of time passed in the previous loop
-        self.input_cooldown_timer += event_listener.time_passed
+            self.input_timer = timer_keeper.addTimer(self.input_cooldown)
 
         #Check if we did not allready start a transition and we are in play mode.
         #If the space bar is pressed when not in a transition, we want to start the play mode.
@@ -134,17 +132,15 @@ class Grid(EntityKeeper):
             #Set behaviour to play mode. The player can end the play mode once its commands queue is empty
             self.play = True
             #Begin a new transition phase
-            self.begin_transition()
+            self.begin_transition(timer_keeper)
 
         #If we are in a transition manage its timer and check if the transition should be stopped
-        if self.in_transition:
-            self.transition_time_counter += event_listener.time_passed
-            if self.transition_time_counter >= self.transition_time:
+        if self.transition_timer.check_timer() and self.in_transition:
                 self.end_transition()
 
         #Ask all entities to update their world coordinates and to do whatever they do
         for ent in self.entities:
-            ent.update(event_listener)
+            ent.update(event_listener, timer_keeper)
 
 
     def moveGridEntity(self, ent, destination_X, destination_Y):
@@ -159,8 +155,8 @@ class Grid(EntityKeeper):
         #TODO Nathan END
         return grid_destination_X >= 0 and grid_destination_X < self.size_X and grid_destination_Y >= 0 and grid_destination_Y < self.size_Y
 
-    def begin_transition(self):
-        self.transition_time_counter = 0
+    def begin_transition(self, timer_keeper):
+        self.transition_timer = timer_keeper.addTimer(self.transition_cooldown)
         self.in_transition = True
         for ent in self.entities:
             if isinstance(ent, GridEntity):
