@@ -199,7 +199,7 @@ class Player(GridEntity):
                 # TODO Nathan END
 
     def begin_transition(self):
-        print("turtle")
+        #print("turtle")
         # Read a command
         if len(self.command_queue) > 0:
             # If there is a command on the queue, pop it and do it
@@ -275,12 +275,12 @@ class Enemy(GridEntity):
     # def define_transition(self, transition_goal_X, transition_goal_Y):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
     def begin_transition(self):
-        print("minotaur")
+        #print("minotaur")
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
 
-        print(self.command_queue)
+        #print(self.command_queue)
 
         #TODO uitleg: gebruik de huidige command_index om het commando op te halen
         X_change = self.command_queue[self.command_index][0]

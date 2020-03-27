@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from girlsday_game.entity import GridEntity, Tile, Wall, Player
 
 class EntityKeeper:
@@ -82,6 +83,8 @@ class Grid(EntityKeeper):
                 grid_row.append(gridPoint)
             self.grid.append(grid_row)
 
+        self.all_walls = []
+
         # Fill the grid with Tiles and Walls
         for i in range(len(lvl1)):
             for j in range(len(lvl1[i])):
@@ -89,10 +92,12 @@ class Grid(EntityKeeper):
 
                 if single_letter == "w":
                     self.addGridEntity(Wall(self.grid[i][j]), j, i)
+                    self.all_walls.append([j, i])
                 elif single_letter == "t":
                     self.addGridEntity(Tile(self.grid[i][j]), j, i)
                 elif single_letter == "n":
                     pass
+
 
 
     def addGridEntity(self, ent, grid_X, grid_Y):
@@ -129,7 +134,7 @@ class Grid(EntityKeeper):
         #We should not be in the transition mode, because a new transition is initialized
         #A currently running transition should first finish
         if not self.in_transition and (event_listener.K_SPACE or self.play):
-            print("begin transition")
+            #print("begin transition")
             #Set behaviour to play mode. The player can end the play mode once its commands queue is empty
             self.play = True
             #Begin a new transition phase
@@ -154,7 +159,29 @@ class Grid(EntityKeeper):
         #Voor nu wordt er alleen gekeken of een entity niet van de grid afloopt
         #Je dit kunnen uitbreiden door te kijken of er een wall tussen de source en destination zit
         #TODO Nathan END
-        return grid_destination_X >= 0 and grid_destination_X < self.size_X and grid_destination_Y >= 0 and grid_destination_Y < self.size_Y
+        #print(self.grid[grid_destination_Y][grid_destination_X])
+
+        self.player_with_in_grid = grid_destination_X >= 0 and grid_destination_X < self.size_X and grid_destination_Y >= 0 and grid_destination_Y < self.size_Y
+
+        for x in self.all_walls:
+            distance_wall_destination = math.sqrt(
+                math.pow((x[0] - grid_destination_X), 2) + math.pow(
+                    (x[1] - grid_destination_Y), 2))
+
+            distance_wall_source = math.sqrt(
+                math.pow((x[0] - grid_source_X), 2) + math.pow(
+                    (x[1] - grid_source_Y), 2))
+
+
+            #print(distance_wall_destination == distance_wall_source)
+        print((grid_destination_X - grid_source_X))
+
+        #print([grid_destination_X, grid_destination_Y])
+        #print(self.all_walls)
+
+        return self.player_with_in_grid
+
+
 
     def begin_transition(self, timer_keeper):
         self.transition_timer = timer_keeper.addTimer(self.transition_cooldown)
