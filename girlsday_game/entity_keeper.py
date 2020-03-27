@@ -166,7 +166,6 @@ class Grid(EntityKeeper):
             self.player_wall_collsion = False
         else:
             self.player_wall_collsion = True
-        print(self.player_wall_collsion)
 
         return self.player_with_in_grid and self.player_wall_collsion
 
