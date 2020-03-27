@@ -232,24 +232,38 @@ class Player(GridEntity):
 # TODO Nathan BEGIN
 # Nathan: Deze functie kan verder uitgebreidt worden
 class Enemy(GridEntity):
-    def __init__(self, entityKeeper=None):
+    def __init__(self, Player, entityKeeper=None):
         if entityKeeper is None:
             self.entityKeeper = None
         else:
             self.entityKeeper = entityKeeper
         self.X = 0
         self.Y = 0
-        self.image = None
-        self.X_size = 0
-        self.Y_size = 0
+        self.image = pygame.image.load("../images/minotaur.png")
+        self.X_size = self.image.get_size()[1]
+        self.Y_size = self.image.get_size()[0]
+
+        # variables to track the transition
         self.transition_start_X = 0
         self.transition_start_Y = 0
         self.transition_stop_X = 0
         self.transition_stop_Y = 0
-        self.transition_function = lambda x: x
+        self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
+        self.player = Player
+
+        self.command_queue = [[2,0],[-2,0],[2,0]]  # TODO Replace this by a Program instance in the future
+
+        # if len(self.command_queue) > 0:
+        #     # If there is a command on the queue, pop it and do it
+        #     command = self.command_queue.pop(0)
+        #     X_change = command[0]
+        #     Y_change = command[1]
+        # grid_destination_X = self.entityKeeper.grid_X + X_change
+        # grid_destination_Y = self.entityKeeper.grid_Y + Y_change
 
     def update(self, event_listener):
         if self.entityKeeper.entityKeeper.in_transition:
+            # If we are in transition mode, smoothly transition our world coordinates
             self.transition(event_listener)
 
     # def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
@@ -259,7 +273,35 @@ class Enemy(GridEntity):
     def begin_transition(self):
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
-        pass
+        # Read a command
+
+        print(self.command_queue)
+        #while True:
+        for x in range(len(self.command_queue)):
+
+            X_change = self.command_queue[x][0]
+            Y_change = self.command_queue[x][1]
+            #print(X_change, Y_change)
+
+        grid_destination_X = self.entityKeeper.grid_X + X_change
+        grid_destination_Y = self.entityKeeper.grid_Y + Y_change
+        if not self.entityKeeper.entityKeeper.requestMove(self.entityKeeper.grid_X, self.entityKeeper.grid_Y,
+                                                          grid_destination_X, grid_destination_Y):
+            # If the transition is not possible, a transition is still initialized, but with a change of 0.
+            # This way this entity is not moved, but it still waits for one transition interval.
+            # This is needed to synchronize all transitioning entities.
+            grid_destination_X = self.entityKeeper.grid_X
+            grid_destination_Y = self.entityKeeper.grid_Y
+        # Register the new grid position for the move
+        self.entityKeeper.entityKeeper.moveGridEntity(self, grid_destination_X, grid_destination_Y)
+        # Calculate the destination in world coordinates
+        destination_X, destination_Y = self.entityKeeper.grid_XY_to_world_XY(grid_destination_X, grid_destination_Y)
+        # Remember the destination world coordinates in order to perform a smooth transition
+        self.define_transition(destination_X, destination_Y)
+
+        if self.entityKeeper.grid_X == self.player.entityKeeper.grid_X:
+            # then we have a collision between player and enemy
+            pass
 
 
 # TODO Nathan END

@@ -3,7 +3,7 @@ import pygame
 from girlsday_game.collisions import Collisions
 from girlsday_game.display import Display
 from girlsday_game.entity_keeper import Grid
-from girlsday_game.entity import Goal, Player, Score
+from girlsday_game.entity import Goal, Player, Score, Enemy
 from girlsday_game.listener import EventListener
 from girlsday_game.music import music
 from girlsday_game.physics import Physics
@@ -25,6 +25,8 @@ class Game:
         self.grid.addGridEntity(score, 1, 1)
         player = Player(goal, score)
         self.grid.addGridEntity(player, 1, 1)
+        enemy= Enemy(player)
+        self.grid.addGridEntity(enemy, 7,5)
 
     def run(self):
 
