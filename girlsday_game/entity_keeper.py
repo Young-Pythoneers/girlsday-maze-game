@@ -49,7 +49,7 @@ class Grid(EntityKeeper):
         self.tile_size = 50
         self.wall_size = 50
         self.transition_time_counter = 1
-        self.transition_cooldown = 0.3
+        self.transition_cooldown = 0.8
         self.transition_timer = timer_keeper.addTimer(0)
         self.in_transition = False #Are we in a transition state?
         self.play = False#Do we play all commands in the player's queue?
@@ -129,6 +129,7 @@ class Grid(EntityKeeper):
         #We should not be in the transition mode, because a new transition is initialized
         #A currently running transition should first finish
         if not self.in_transition and (event_listener.K_SPACE or self.play):
+            print("begin transition")
             #Set behaviour to play mode. The player can end the play mode once its commands queue is empty
             self.play = True
             #Begin a new transition phase

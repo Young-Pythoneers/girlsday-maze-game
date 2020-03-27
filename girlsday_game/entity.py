@@ -199,15 +199,17 @@ class Player(GridEntity):
                 # TODO Nathan END
 
     def begin_transition(self):
+        print("turtle")
         # Read a command
         if len(self.command_queue) > 0:
             # If there is a command on the queue, pop it and do it
             command = self.command_queue.pop(0)
             X_change = command[0]
             Y_change = command[1]
+            if len(self.command_queue) <= 0:
+                # If there is no command on the queue tell the grid that it should not play transitions after this one
+                self.entityKeeper.entityKeeper.play = False
         else:
-            # If there is no command on the queue tell the grid that it should not play transitions anymore
-            self.entityKeeper.entityKeeper.play = False
             X_change = 0
             Y_change = 0
         # calculate the destination of the transition in grid coordinates
@@ -251,7 +253,9 @@ class Enemy(GridEntity):
         self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
         self.player = Player
 
-        self.command_queue = [[2,0],[-2,0],[2,0]]  # TODO Replace this by a Program instance in the future
+        self.command_queue = [[2,0],[-2,0],[2,0], [-2,0]]  # TODO Replace this by a Program instance in the future
+
+        self.command_index = 0 #TODO uitleg: Ik heb dit toegevoegd om bij te houden welk commando er uitevoerd moet worden
 
         # if len(self.command_queue) > 0:
         #     # If there is a command on the queue, pop it and do it
@@ -271,17 +275,22 @@ class Enemy(GridEntity):
     # def define_transition(self, transition_goal_X, transition_goal_Y):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
     def begin_transition(self):
+        print("minotaur")
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
 
         print(self.command_queue)
-        #while True:
-        for x in range(len(self.command_queue)):
 
-            X_change = self.command_queue[x][0]
-            Y_change = self.command_queue[x][1]
-            #print(X_change, Y_change)
+        #TODO uitleg: gebruik de huidige command_index om het commando op te halen
+        X_change = self.command_queue[self.command_index][0]
+        Y_change = self.command_queue[self.command_index][1]
+        #TODO uitleg: voor de volgende transitie, incrementeer de commando_index
+        self.command_index += 1
+        #TODO uitleg: als de command_index uit de array loopt, wordt hij gereset naar 0 en begint dus van voren af aan
+        if self.command_index >= len(self.command_queue):
+            self.command_index = 0
+        #print(X_change, Y_change)
 
         grid_destination_X = self.entityKeeper.grid_X + X_change
         grid_destination_Y = self.entityKeeper.grid_Y + Y_change
