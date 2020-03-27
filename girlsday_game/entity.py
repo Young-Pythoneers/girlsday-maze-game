@@ -137,6 +137,7 @@ class Player(GridEntity):
         else:
             X_change = 0
             Y_change = 0
+            self.entityKeeper.entityKeeper.play = False
         # calculate the destination of the transition in grid coordinates
         grid_destination_X = self.entityKeeper.grid_X + X_change
         grid_destination_Y = self.entityKeeper.grid_Y + Y_change

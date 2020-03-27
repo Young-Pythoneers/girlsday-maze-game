@@ -133,9 +133,7 @@ class Grid(EntityKeeper):
         #A currently running transition should first finish
         if not self.in_transition and (event_listener.K_SPACE or self.play):
             #Set behaviour to play mode. The player can end the play mode once its commands queue is empty
-            self.play = True
-            #Begin a new transition phase
-            self.begin_transition(timer_keeper)
+            self.play = self.begin_transition(timer_keeper)
 
         #If we are in a transition manage its timer and check if the transition should be stopped
         if self.transition_timer.check_timer() and self.in_transition:
@@ -171,11 +169,14 @@ class Grid(EntityKeeper):
 
 
     def begin_transition(self, timer_keeper):
+        if len(self.player.command_queue) <= 0:
+            return False
         self.transition_timer = timer_keeper.addTimer(self.transition_cooldown)
         self.in_transition = True
         for ent in self.entities:
             if isinstance(ent, GridEntity):
                 ent.begin_transition()
+        return True
 
     def end_transition(self, timer_keeper):
         self.in_transition = False

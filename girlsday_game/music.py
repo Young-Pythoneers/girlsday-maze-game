@@ -5,7 +5,7 @@ class music:
     def __init__(self, game):
         self.game = game
         mixer.music.load("../sounds/funky.wav")
-        #mixer.music.play(-1)
+        mixer.music.play(-1)
 
     def sound_handler(file, repeat):
         a_sound = mixer.Sound(file)
