@@ -29,15 +29,7 @@ class Entity:
 
 class GridEntity(Entity):
     def __init__(self, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = 0
-        self.Y = 0
-        self.image = None
-        self.X_size = 0
-        self.Y_size = 0
+        Entity.__init__(self, entityKeeper)
         self.transition = None
 
     def update(self, event_listener, timer_keeper):
@@ -53,17 +45,11 @@ class GridEntity(Entity):
 
 class Tile(GridEntity):
     def __init__(self, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = 0
-        self.Y = 0
+        GridEntity.__init__(self,entityKeeper)
         self.image = pygame.Surface((50, 50))
         self.image.fill((255, 0, 0))
         self.X_size = 50
         self.Y_size = 50
-        self.transition = None
 
     def update(self, event_listener, timer_keeper):
         pass
@@ -74,11 +60,7 @@ class Tile(GridEntity):
 
 class Wall(GridEntity):
     def __init__(self, entityKeeper):
-        self.entityKeeper = entityKeeper
-        self.X = 0
-        self.Y = 0
-        self.width = 0
-        self.height = 0
+        GridEntity.__init__(self, entityKeeper)
 
         # TODO Nathan BEGIN
         # Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
@@ -107,7 +89,6 @@ class Wall(GridEntity):
         self.Y_size = depth
 
         # TODO Nathan END
-        self.transition = None
 
     def update(self, event_listener, timer_keeper):
         pass
@@ -118,12 +99,7 @@ class Wall(GridEntity):
 
 class Player(GridEntity):
     def __init__(self, goal, score, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = 0
-        self.Y = 0
+        GridEntity.__init__(self, entityKeeper)
         self.image = pygame.image.load("../images/sized_turtle.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
@@ -147,12 +123,6 @@ class Player(GridEntity):
             if distance_to_goal <= 0.7:
                 # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
                 self.goal.eaten = True
-                # TODO Nathan BEGIN
-                # Nathan probeer hier eens een aantal particles toe te voegen aan self.entityKeeper.entityKeeper.entities (dit is de Grid)
-                # self.entityKeeper is de GridPoint waar Player momenteel is. De entityKeeper van dit GridPoint is dus de Grid
-                # Je kunt particles de X en Y van Player meegeven en een random impulse_X en impulse_Y.
-                # Dan lijkt het al gauw op een explosie
-                # TODO Nathan END
 
     def begin_transition(self):
         # Read a command
@@ -175,15 +145,10 @@ class Player(GridEntity):
 
 
 # TODO Nathan BEGIN
-# Nathan: Deze functie kan verder uitgebreidt worden
+# Nathan: Deze functie kan verder uitgebreid worden
 class Enemy(GridEntity):
     def __init__(self, Player, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = 0
-        self.Y = 0
+        GridEntity.__init__(self, entityKeeper)
         self.image = pygame.image.load("../images/minotaur.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
@@ -241,13 +206,7 @@ class Enemy(GridEntity):
 
 class Goal(GridEntity):
     def __init__(self, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.entityKeeper = None
-        self.X = 0
-        self.Y = 0
+        GridEntity.__init__(self, entityKeeper)
         self.image = pygame.image.load("../images/lettuce.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
@@ -259,7 +218,6 @@ class Goal(GridEntity):
         #print(self.eaten)
 
     def end_transition(self, timer_keeper):
-        print("ending goal transition")
         if self.eaten == True:
             self.player.score.score += 1
             self.player.score.score += 1
@@ -287,11 +245,6 @@ class Goal(GridEntity):
 
 class Score(GridEntity):
     def __init__(self, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.entityKeeper = None
         self.X = 10
         self.Y = 10
         self.score = 0
@@ -306,21 +259,14 @@ class Score(GridEntity):
 
 
 class PhysicalEntity(Entity):
-    def __init__(self, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.entityKeeper = None
-        self.X = 0
-        self.Y = 0
-        self.impulse_X = 0
-        self.impulse_Y = 0
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        Entity.__init__(self, entityKeeper)
+        self.X = X
+        self.Y = Y
+        self.impulse_X = impulse_X
+        self.impulse_Y = impulse_Y
         self.speed = 0
         self.mass = 0
-        self.image = None
-        self.X_size = 0
-        self.Y_size = 0
         self.collided = False
 
     def update(self, event_listener, timer_keeper):
@@ -331,21 +277,10 @@ class PhysicalEntity(Entity):
 
 
 class Projectile(PhysicalEntity):
-    def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper=None, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = X
-        self.Y = Y
-        self.impulse_X = impulse_X
-        self.impulse_Y = impulse_Y
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        PhysicalEntity.__init__(self, X, Y, impulse_X, impulse_Y, entityKeeper)
         self.speed = 40
         self.mass = 1
-        self.image = None
-        self.X_size = 0
-        self.Y_size = 0
-        self.collided = False
 
     def update(self, event_listener, timer_keeper):
         if self.collided:
@@ -362,20 +297,12 @@ class Projectile(PhysicalEntity):
 
 class Particle(Projectile):
     def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = X
-        self.Y = Y
-        self.impulse_X = impulse_X
-        self.impulse_Y = impulse_Y
+        Projectile.__init__(self, X, Y, impulse_X, impulse_Y, entityKeeper)
         self.speed = 0
         self.mass = 1
         self.image = pygame.image.load("../images/explosion.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
-        self.collided = False
         self.timer = timer_keeper.addTimer(1 + uniform(-0.2, 0.2))
 
     def update(self, event_listener, timer_keeper):
@@ -387,21 +314,13 @@ class Particle(Projectile):
 
 
 class Rocket(Projectile):
-    def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper=None, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = X
-        self.Y = Y
-        self.impulse_X = impulse_X
-        self.impulse_Y = impulse_Y
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        Projectile.__init__(self, X, Y, impulse_X, impulse_Y, entityKeeper)
         self.speed = 40
         self.mass = 1
         self.image = pygame.image.load("../images/pizza-box.png")
         self.X_size = self.image.get_size()[1]
         self.Y_size = self.image.get_size()[0]
-        self.collided = False
         self.particle_count = 20
         self.spread = 20
         self.impulse_modifier = 1
@@ -431,15 +350,8 @@ class Rocket(Projectile):
 
 
 class RocketDuck(PhysicalEntity):
-    def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper=None, entityKeeper=None):
-        if entityKeeper is None:
-            self.entityKeeper = None
-        else:
-            self.entityKeeper = entityKeeper
-        self.X = 370
-        self.Y = 480
-        self.impulse_X = 0
-        self.impulse_Y = 0
+    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+        PhysicalEntity.__init__(self, X, Y, impulse_X, impulse_Y, entityKeeper)
         self.speed = 20
         self.mass = 1
         self.image = pygame.image.load("../images/rocket_duck.png")
@@ -447,7 +359,6 @@ class RocketDuck(PhysicalEntity):
         self.Y_size = self.image.get_size()[0]
         self.angle = 3 * np.pi / 2
         self.turn_speed = 50
-        self.collided = False
 
     def update(self, event_listener, timer_keeper):
         if self.collided:

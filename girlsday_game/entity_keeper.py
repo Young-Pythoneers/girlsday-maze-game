@@ -20,8 +20,8 @@ class EntityKeeper:
 
 class GridPoint(EntityKeeper):
     def __init__(self, game, entityKeeper, grid_X, grid_Y, zero_X, zero_Y, tile_size, wall_size):
+        EntityKeeper.__init__(self, game)
         self.game = None #A gridpoint does not live inside of a game, but inside of a grid
-        self.entities = []
         self.entityKeeper = entityKeeper
         self.grid_X = grid_X
         self.grid_Y = grid_Y
@@ -40,8 +40,7 @@ class GridPoint(EntityKeeper):
 
 class Grid(EntityKeeper):
     def __init__(self, game, timer_keeper):
-        self.game = game
-        self.entities = []
+        EntityKeeper.__init__(self, game)
         self.size_X = 0
         self.size_Y = 0
         self.zero_X = 50
