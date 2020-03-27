@@ -346,7 +346,7 @@ class PhysicalEntity(Entity):
 
 
 class Projectile(PhysicalEntity):
-    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+    def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper=None, entityKeeper=None):
         if entityKeeper is None:
             self.entityKeeper = None
         else:
@@ -402,7 +402,7 @@ class Particle(Projectile):
 
 
 class Rocket(Projectile):
-    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+    def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper=None, entityKeeper=None):
         if entityKeeper is None:
             self.entityKeeper = None
         else:
@@ -424,7 +424,7 @@ class Rocket(Projectile):
 
     def update(self, event_listener, timer_keeper):
         if self.collided:
-            self.make_particles()
+            self.make_particles(timer_keeper)
             self.destroy()
             self.collided = False
         self.impulse_X += self.speed * timer_keeper.time_passed
@@ -435,18 +435,18 @@ class Rocket(Projectile):
     def collision(self):
         self.destroy()
 
-    def make_particles(self):
+    def make_particles(self,timer_keeper):
         for i in range(self.particle_count):
-            self.entityKeeper.addEntity(Particle(self.entityKeeper, self.X + uniform(-self.spread, self.spread),
+            self.entityKeeper.addEntity(Particle(self.X + uniform(-self.spread, self.spread),
                                                  self.Y + uniform(-self.spread, self.spread),
                                                  self.impulse_X * self.impulse_multiplier + uniform(
                                                      -self.impulse_modifier, self.impulse_modifier),
                                                  self.impulse_Y * self.impulse_multiplier + uniform(
-                                                     -self.impulse_modifier, self.impulse_modifier)))
+                                                     -self.impulse_modifier, self.impulse_modifier, timer_keeper, self.entityKeeper)))
 
 
 class RocketDuck(PhysicalEntity):
-    def __init__(self, X, Y, impulse_X, impulse_Y, entityKeeper=None):
+    def __init__(self, X, Y, impulse_X, impulse_Y, timer_keeper=None, entityKeeper=None):
         if entityKeeper is None:
             self.entityKeeper = None
         else:
