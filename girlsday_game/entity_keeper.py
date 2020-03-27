@@ -59,12 +59,12 @@ class Grid(EntityKeeper):
         lvl1 = np.array([
             "wwwwwwwwwwwwwww",
             "wtntntntntntntw",
-            "wnwwwwwwwwwwwnw",
-            "wtwtntntntntwtw",
+            "wnwwwwwnwwwwwnw",
+            "wtwtntntwtntwtw",
             "wnwnwwwwwwwnwnw",
-            "wtwtwtntntntwtw",
-            "wnwnwwwwwwwwwnw",
-            "wtwtntntntntntw",
+            "wtntwtntntntwtw",
+            "wnnnwwwwwnnnwnw",
+            "wtntntntntntntw",
             "wwwwwwwwwwwwwww",
         ])
 

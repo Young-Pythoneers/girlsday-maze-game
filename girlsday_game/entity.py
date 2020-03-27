@@ -157,7 +157,7 @@ class Enemy(GridEntity):
         self.transition = CosTransition(self)
         self.player = Player
 
-        self.command_queue = [[2,0],[-2,0],[2,0], [-2,0]]  # TODO Replace this by a Program instance in the future
+        self.command_queue = [[-2,0],[2,0],[2,0],[2,0], [0,2], [2,0], [-2,0], [0,-2], [-2,0], [-2,0]]  # TODO Replace this by a Program instance in the future
 
         self.command_index = 0 #TODO uitleg: Ik heb dit toegevoegd om bij te houden welk commando er uitevoerd moet worden
 
