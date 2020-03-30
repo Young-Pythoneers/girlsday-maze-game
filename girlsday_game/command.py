@@ -13,28 +13,18 @@ class Command:
 class Program(Command):
     def __init__(self):
         Command.__init__(self)
-        end = EndCommand()
-        end.parent = self
-        self.children = [end]
+        self.children = []
 
     def do_command(self):
+        if self.command_pointer >= len(self.children):
+            return False
         command = self.children[self.command_pointer]
-        return command.do_command()
+        command.do_command()
+        return self.command_pointer < len(self.children)
 
     def add_child(self, command):
         command.parent = self
-        end = self.children.pop(-1)
         self.children.append(command)
-        self.children.append(end)
-
-
-class EndCommand(Command):
-    def __init__(self):
-        Command.__init__(self)
-
-    def do_command(self):
-        print("EndCommand")
-        return False
 
 class MoveCommand(Command):
     def __init__(self):
@@ -43,7 +33,6 @@ class MoveCommand(Command):
     def do_command(self):
         self.parent.command_pointer += 1
         print("MoveCommand")
-        return True
 
 class AttackCommand(Command):
     def __init__(self):
@@ -52,7 +41,6 @@ class AttackCommand(Command):
     def do_command(self):
         self.parent.command_pointer += 1
         print("AttackCommand")
-        return True
 
 class JumpCommand(Command):
     def __init__(self):
@@ -61,7 +49,6 @@ class JumpCommand(Command):
     def do_command(self):
         self.parent.command_pointer += 1
         print("JumpCommand")
-        return True
 
 class PiepCommand(Command):
     def __init__(self):
@@ -70,7 +57,6 @@ class PiepCommand(Command):
     def do_command(self):
         self.parent.command_pointer += 1
         print("PiepCommand")
-        return True
 
 class LoopCommand(Command):
     def __init__(self, repeats):
@@ -82,7 +68,7 @@ class LoopCommand(Command):
     def do_command(self):
         #print("LoopCommand")
         command = self.children[self.command_pointer]
-        output = command.do_command()
+        command.do_command()
         self.loop_break = not self.iterator < self.repeats
         if self.command_pointer == len(self.children):
             if self.loop_break:
@@ -91,7 +77,6 @@ class LoopCommand(Command):
             else:
                 self.iterator += 1
             self.command_pointer = 0
-        return output
 
     def add_child(self, command):
         command.parent = self
