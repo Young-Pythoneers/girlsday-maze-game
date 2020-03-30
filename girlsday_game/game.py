@@ -21,25 +21,25 @@ class Game:
         self.collisions = Collisions(self)
         self.physics = Physics(self)
         goal = Goal()
-        self.grid.addGridEntity(goal, 3, 1)
+        self.grid.add_grid_entity(goal, 3, 1)
 
         score = Score()
-        self.grid.addGridEntity(score, 1, 1)
+        self.grid.add_grid_entity(score, 1, 1)
         player = Player(goal, score)
-        self.grid.addGridEntity(player, 1, 1)
+        self.grid.add_grid_entity(player, 1, 1)
         enemy= Enemy(player)
-        self.grid.addGridEntity(enemy, 7,5)
+        self.grid.add_grid_entity(enemy, 7,5)
 
 
     def run(self):
 
         while True:
             do_we_continue = self.event_listener.listen()
-            self.collisions.applyCollisions(self.grid.entities)
-            self.physics.applyPhysics(self.grid.entities, self.event_listener, self.timer_keeper)
-            self.grid.updateEntities(self.event_listener, self.timer_keeper)
-            self.display.drawScreen(self.grid.entities)
-            self.timer_keeper.updateTimers()
+            self.collisions.apply_collisions(self.grid.entities)
+            self.physics.apply_physics(self.grid.entities, self.event_listener, self.timer_keeper)
+            self.grid.update_entities(self.event_listener, self.timer_keeper)
+            self.display.draw_screen(self.grid.entities)
+            self.timer_keeper.update_timers()
 
             if not do_we_continue is None:
                 break

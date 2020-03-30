@@ -18,7 +18,7 @@ class Physics:
         self.friction = 3
         self.gravity = 10
 
-    def applyPhysics(self, entities: Entity, event_listener: EventListener, timer_keeper: TimerKeeper) -> None:
+    def apply_physics(self, entities: Entity, event_listener: EventListener, timer_keeper: TimerKeeper) -> None:
         """ Function that applies the following physical effects to PhysicalEntities only:
         friction, gravity and kinetic energy.
 
@@ -34,19 +34,19 @@ class Physics:
             if isinstance(ent, PhysicalEntity):
                 #Apply friction
                 #The higher the mass, the less effect friction has.
-                ent.impulse_X /= (
+                ent.impulse_x /= (
                     1 + (self.friction * timer_keeper.time_passed) / ent.mass
                 )
-                ent.impulse_Y /= (
+                ent.impulse_y /= (
                     1 + (self.friction * timer_keeper.time_passed) / ent.mass
                 )
-                if ent.Y <= self.game.display.screen_size_Y - ent.Y_size and \
+                if ent.y <= self.game.display.screen_size_y - ent.y_size and \
                     not ent.collided:#This if statement fixes weird behaviour at the screen's bottom.
                     #Apply gravity
-                    ent.impulse_Y += (
+                    ent.impulse_y += (
                         self.gravity * ent.mass * timer_keeper.time_passed
                     )
                 #Update the Entity's position acording to its impulse (kinetic energy) and mass.
                 #The higher the mass, the more impulse is needed for movement.
-                ent.X += ent.impulse_X / ent.mass
-                ent.Y += ent.impulse_Y / ent.mass
+                ent.x += ent.impulse_x / ent.mass
+                ent.y += ent.impulse_y / ent.mass

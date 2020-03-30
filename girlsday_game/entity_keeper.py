@@ -8,53 +8,53 @@ class EntityKeeper:
         self.entities = []
 
     def addEntity(self, ent):
-        ent.entityKeeper = self
+        ent.entity_keeper = self
         self.entities.append(ent)
 
     def removeEntity(self, ent):
-        ent.entityKeeper = None
+        ent.entity_keeper = None
         self.entities.remove(ent)
 
-    def updateEntities(self, event_listener):
+    def update_entities(self, event_listener):
         for ent in self.entities:
             ent.update(event_listener)
 
 class GridPoint(EntityKeeper):
-    def __init__(self, game, entityKeeper, grid_X, grid_Y, zero_X, zero_Y, tile_size, wall_size):
+    def __init__(self, game, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size):
         EntityKeeper.__init__(self, game)
         self.game = None #A gridpoint does not live inside of a game, but inside of a grid
-        self.entityKeeper = entityKeeper
-        self.grid_X = grid_X
-        self.grid_Y = grid_Y
-        self.zero_X = zero_X
-        self.zero_Y = zero_Y
+        self.entity_keeper = entity_keeper
+        self.grid_x = grid_x
+        self.grid_y = grid_y
+        self.zero_x = zero_x
+        self.zero_y = zero_y
         self.tile_size = tile_size
         self.wall_size = wall_size
 
-    def grid_XY_to_world_XY(self, grid_X, grid_Y):
-        X = (grid_X // 2) * self.tile_size + np.ceil(grid_X / 2) * self.wall_size + self.zero_X
-        Y = (grid_Y // 2) * self.tile_size + np.ceil (grid_Y / 2) * self.wall_size + self.zero_Y
-        return X, Y
+    def grid_xy_to_world_xy(self, grid_x, grid_y):
+        x = (grid_x // 2) * self.tile_size + np.ceil(grid_x / 2) * self.wall_size + self.zero_x
+        y = (grid_y // 2) * self.tile_size + np.ceil (grid_y / 2) * self.wall_size + self.zero_y
+        return x, y
 
-    def set_grid_XY_to_world_XY(self, ent):
-        ent.X, ent.Y = self.grid_XY_to_world_XY(self.grid_X, self.grid_Y)
+    def set_grid_xy_to_world_xy(self, ent):
+        ent.x, ent.y = self.grid_xy_to_world_xy(self.grid_x, self.grid_y)
 
 class Grid(EntityKeeper):
     def __init__(self, game, timer_keeper):
         EntityKeeper.__init__(self, game)
-        self.size_X = 0
-        self.size_Y = 0
-        self.zero_X = 50
-        self.zero_Y = 50
+        self.size_x = 0
+        self.size_y = 0
+        self.zero_x = 50
+        self.zero_y = 50
         self.tile_size = 50
         self.wall_size = 50
         self.transition_cooldown = 0.3
-        self.transition_timer = timer_keeper.addTimer(0)
+        self.transition_timer = timer_keeper.add_timer(0)
         self.in_transition = False #Are we in a transition state?
         self.play = False#Do we play all commands in the player's queue?
         self.player = None #can be removed in future
-        self.input_cooldown = 0.3  # can be removed in future
-        self.input_timer = timer_keeper.addTimer(0)# can be removed in future
+        self.input_cooldown = 0.1  # can be removed in future
+        self.input_timer = timer_keeper.add_timer(0)# can be removed in future
 
         lvl1 = np.array([
             "wwwwwwwwwwwwwww",
@@ -68,16 +68,16 @@ class Grid(EntityKeeper):
             "wwwwwwwwwwwwwww",
         ])
 
-        self.size_X = len(lvl1[0])
-        self.size_Y = len(lvl1)
+        self.size_x = len(lvl1[0])
+        self.size_y = len(lvl1)
 
         #Create the grid
         self.grid = []
-        for i in range(self.size_Y):
+        for i in range(self.size_y):
             grid_row = []
-            for j in range(self.size_X):
-                gridPoint = GridPoint(self, None, j, i, self.zero_X, self.zero_Y, self.tile_size, self.wall_size)
-                gridPoint.entityKeeper = self
+            for j in range(self.size_x):
+                gridPoint = GridPoint(self, None, j, i, self.zero_x, self.zero_y, self.tile_size, self.wall_size)
+                gridPoint.entity_keeper = self
                 grid_row.append(gridPoint)
             self.grid.append(grid_row)
 
@@ -89,43 +89,43 @@ class Grid(EntityKeeper):
                 single_letter = lvl1[i][j]
 
                 if single_letter == "w":
-                    self.addGridEntity(Wall(self.grid[i][j]), j, i)
+                    self.add_grid_entity(Wall(self.grid[i][j]), j, i)
                     self.all_walls.append([j, i])
                 elif single_letter == "t":
-                    self.addGridEntity(Tile(self.grid[i][j]), j, i)
+                    self.add_grid_entity(Tile(self.grid[i][j]), j, i)
                 elif single_letter == "n":
                     pass
 
 
 
-    def addGridEntity(self, ent, grid_X, grid_Y):
+    def add_grid_entity(self, ent, grid_x, grid_y):
         if isinstance(ent, Player):
             self.player = ent
         self.entities.append(ent)
-        self.grid[grid_Y][grid_X].addEntity(ent)
-        self.grid[grid_Y][grid_X].set_grid_XY_to_world_XY(ent)
+        self.grid[grid_y][grid_x].addEntity(ent)
+        self.grid[grid_y][grid_x].set_grid_xy_to_world_xy(ent)
 
     def removeGridEntity(self, ent):
-        ent.entityKeeper.removeEntity(ent)
+        ent.entity_keeper.removeEntity(ent)
         self.entities.remove(ent)
 
-    def updateEntities(self, event_listener, timer_keeper):
+    def update_entities(self, event_listener, timer_keeper):
         #Check the event_listener to see if there is keyboard input
         if self.input_timer.check_timer() and not self.play  and (event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
-            X_change = 0
-            Y_change = 0
+            x_change = 0
+            y_change = 0
             if event_listener.K_LEFT:
-                X_change -= 2
+                x_change -= 2
             if event_listener.K_RIGHT:
-                X_change += 2
+                x_change += 2
             if event_listener.K_UP:
-                Y_change -= 2
+                y_change -= 2
             if event_listener.K_DOWN:
-                Y_change += 2
+                y_change += 2
             #If there is input, apply the input by putting a command on the player's queue
-            self.player.command_queue.append((X_change, Y_change))
+            self.player.command_queue.append((x_change, y_change))
             #Set the input_cooldown_timer to better separate individual key presses
-            self.input_timer = timer_keeper.addTimer(self.input_cooldown)
+            self.input_timer = timer_keeper.add_timer(self.input_cooldown)
 
         #Check if we did not allready start a transition and we are in play mode.
         #If the space bar is pressed when not in a transition, we want to start the play mode.
@@ -144,20 +144,20 @@ class Grid(EntityKeeper):
             ent.update(event_listener, timer_keeper)
 
 
-    def moveGridEntity(self, ent, destination_X, destination_Y):
-        ent.entityKeeper.removeEntity(ent)
-        self.grid[destination_Y][destination_X].addEntity(ent)
+    def moveGridEntity(self, ent, destination_x, destination_y):
+        ent.entity_keeper.removeEntity(ent)
+        self.grid[destination_y][destination_x].addEntity(ent)
 
-    def requestMove(self, grid_source_X, grid_source_Y, grid_destination_X, grid_destination_Y):
+    def requestMove(self, grid_source_x, grid_source_y, grid_destination_x, grid_destination_y):
         #TODO Nathan BEGIN
         #Nathan: voordat een entity zich naar een nieuw GridPoint verplaatst, vraagt hij aan grid of dit wel kan / mag
         #Voor nu wordt er alleen gekeken of een entity niet van de grid afloopt
         #Je dit kunnen uitbreiden door te kijken of er een wall tussen de source en destination zit
         #TODO Nathan END
-        #print(self.grid[grid_destination_Y][grid_destination_X])
+        #print(self.grid[grid_destination_y][grid_destination_x])
 
-        self.player_with_in_grid = grid_destination_X >= 0 and grid_destination_X < self.size_X and grid_destination_Y >= 0 and grid_destination_Y < self.size_Y
-        self.player_wall_collsion = [(grid_destination_X + grid_source_X)/2, (grid_destination_Y + grid_source_Y)/2] in self.all_walls
+        self.player_with_in_grid = grid_destination_x >= 0 and grid_destination_x < self.size_x and grid_destination_y >= 0 and grid_destination_y < self.size_y
+        self.player_wall_collsion = [(grid_destination_x + grid_source_x)/2, (grid_destination_y + grid_source_y)/2] in self.all_walls
 
         if self.player_wall_collsion == True:
             self.player_wall_collsion = False
@@ -171,7 +171,7 @@ class Grid(EntityKeeper):
     def begin_transition(self, timer_keeper):
         if len(self.player.command_queue) <= 0:
             return False
-        self.transition_timer = timer_keeper.addTimer(self.transition_cooldown)
+        self.transition_timer = timer_keeper.add_timer(self.transition_cooldown)
         self.in_transition = True
         for ent in self.entities:
             if isinstance(ent, GridEntity):

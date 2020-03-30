@@ -9,15 +9,15 @@ class TimerKeeper:
         self.current_time = time()
         self.time_passed = self.current_time - self.previous_time
 
-    def addTimer(self, timer_duration):
+    def add_timer(self, timer_duration):
         timer = Timer(timer_duration,self)
         self.timers.append(timer)
         return timer
 
-    def removeTimer(self,timer):
+    def remove_timer(self,timer):
         self.timers.remove(timer)
 
-    def updateTimers(self):
+    def update_timers(self):
         self.previous_time = self.current_time
         self.current_time = time()
         self.time_passed = self.current_time - self.previous_time

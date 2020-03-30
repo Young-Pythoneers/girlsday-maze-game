@@ -12,54 +12,54 @@ class Collisions:
 
     def collision(selfs, ent1, ent2):
         penetration = 0
-        distance = math.sqrt(math.pow(ent1.X - ent2.X, 2) + math.pow(ent1.Y - ent2.Y, 2))
+        distance = math.sqrt(math.pow(ent1.x - ent2.x, 2) + math.pow(ent1.y - ent2.y, 2))
         if  distance > 50:
             return False, 0
         points1 = [
-            (ent1.X, ent1.Y),
-            (ent1.X + ent1.X_size, ent1.Y),
-            (ent1.X + ent1.X_size, ent1.Y + ent1.Y_size),
-            (ent1.X, ent1.Y + ent1.Y_size),
+            (ent1.x, ent1.y),
+            (ent1.x + ent1.x_size, ent1.y),
+            (ent1.x + ent1.x_size, ent1.y + ent1.y_size),
+            (ent1.x, ent1.y + ent1.y_size),
         ]
         points2 = [
-            (ent2.X, ent2.Y),
-            (ent2.X + ent2.X_size, ent2.Y),
-            (ent2.X + ent2.X_size, ent2.Y + ent2.Y_size),
-            (ent2.X, ent2.Y + ent2.Y_size),
+            (ent2.x, ent2.y),
+            (ent2.x + ent2.x_size, ent2.y),
+            (ent2.x + ent2.x_size, ent2.y + ent2.y_size),
+            (ent2.x, ent2.y + ent2.y_size),
         ]
         output1 = any(
             [
-                p[0] >= ent2.X
-                and p[0] <= ent2.X + ent2.X_size
-                and p[1] >= ent2.Y
-                and p[1] <= ent2.Y + ent2.Y_size
+                p[0] >= ent2.x
+                and p[0] <= ent2.x + ent2.x_size
+                and p[1] >= ent2.y
+                and p[1] <= ent2.y + ent2.y_size
                 for p in points1
             ]
         )
         output2 = any(
             [
-                p[0] >= ent1.X
-                and p[0] <= ent1.X + ent1.X_size
-                and p[1] >= ent1.Y
-                and p[1] <= ent1.Y + ent1.Y_size
+                p[0] >= ent1.x
+                and p[0] <= ent1.x + ent1.x_size
+                and p[1] >= ent1.y
+                and p[1] <= ent1.y + ent1.y_size
                 for p in points2
             ]
         )
         return output1 or output2, distance
 
-    def applyCollisions(self, entities):
+    def apply_collisions(self, entities):
         #For every PhysicalEntity, check if they go off the edge of the screen
         #If so, reverse the impulse
         for ent in entities:
             if isinstance(ent, PhysicalEntity):
-                if ent.X < 0 or ent.X > self.game.display.screen_size_X - ent.X_size:
-                    ent.impulse_X = -ent.impulse_X
+                if ent.x < 0 or ent.x > self.game.display.screen_size_x - ent.x_size:
+                    ent.impulse_x = -ent.impulse_x
                     ent.collided = True
-                if ent.Y < 0 or ent.Y > self.game.display.screen_size_Y - ent.Y_size:
-                    ent.impulse_Y = -ent.impulse_Y
+                if ent.y < 0 or ent.y > self.game.display.screen_size_y - ent.y_size:
+                    ent.impulse_y = -ent.impulse_y
                     ent.collided = True
-                ent.X = np.clip(ent.X, 0, self.game.display.screen_size_X - ent.X_size)
-                ent.Y = np.clip(ent.Y, 0, self.game.display.screen_size_Y - ent.Y_size)
+                ent.x = np.clip(ent.x, 0, self.game.display.screen_size_x - ent.x_size)
+                ent.y = np.clip(ent.y, 0, self.game.display.screen_size_y - ent.y_size)
         #For every pair of PhysicalEntities, check if they are in a collision
         #If so, they each give eachother a part of their impulse
         for ent1, ent2 in list(itertools.combinations(entities, 2)):
@@ -71,24 +71,24 @@ class Collisions:
                 collided, distance = self.collision(ent1, ent2)
                 if collided:
                     if isinstance(ent1, PhysicalEntity):
-                        X1 = ent1.impulse_X
-                        Y1 = ent1.impulse_Y
+                        x1 = ent1.impulse_x
+                        y1 = ent1.impulse_y
                     else:
-                        X1 = 0
-                        Y1 = 0
+                        x1 = 0
+                        y1 = 0
                     if isinstance(ent2, PhysicalEntity):
-                        X2 = ent2.impulse_X
-                        Y2 = ent2.impulse_Y
+                        x2 = ent2.impulse_x
+                        y2 = ent2.impulse_y
                     else:
-                        X2 = 0
-                        Y2 = 0
-                    impulse_X_dif = X1 - X2
-                    impulse_Y_dif = Y1 - Y2
+                        x2 = 0
+                        y2 = 0
+                    impulse_x_dif = x1 - x2
+                    impulse_y_dif = y1 - y2
                     if isinstance(ent1, PhysicalEntity):
-                        ent1.impulse_X = -impulse_X_dif
-                        ent1.impulse_Y = -impulse_Y_dif
+                        ent1.impulse_x = -impulse_x_dif
+                        ent1.impulse_y = -impulse_y_dif
                         ent1.collided = True
                     if isinstance(ent2, PhysicalEntity):
-                        ent2.impulse_X = impulse_X_dif
-                        ent2.impulse_Y = impulse_Y_dif
+                        ent2.impulse_x = impulse_x_dif
+                        ent2.impulse_y = impulse_y_dif
                         ent2.collided = True
