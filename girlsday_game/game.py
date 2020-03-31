@@ -5,7 +5,7 @@ from girlsday_game.display import Display
 from girlsday_game.entity_keeper import Grid
 from girlsday_game.entity import Goal, Player, Score, Enemy
 from girlsday_game.listener import EventListener
-from girlsday_game.music import music
+from girlsday_game.music import Music
 from girlsday_game.physics import Physics
 from girlsday_game.timer_keeper import TimerKeeper
 
@@ -17,7 +17,7 @@ class Game:
         self.event_listener = EventListener(self)
         self.timer_keeper = TimerKeeper()
         self.grid = Grid(self.timer_keeper)
-        self.music = music(self)
+        self.music = Music(self)
         self.collisions = Collisions(self)
         self.physics = Physics(self)
         goal = Goal()
