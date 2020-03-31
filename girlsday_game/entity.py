@@ -5,13 +5,9 @@ import pygame
 from girlsday_game.music import music
 from girlsday_game.transition import CosTransition, InstantTransition, WobblyTransition
 
-
-class Entity:
+class Entity():
     def __init__(self, entity_keeper=None):
-        if entity_keeper is None:
-            self.entity_keeper = None
-        else:
-            self.entity_keeper = entity_keeper
+        self.entity_keeper = entity_keeper
         self.x = 0
         self.y = 0
         self.image = None
@@ -24,7 +20,7 @@ class Entity:
         return x, y
 
     def update(self, event_listener):
-        ...
+        pass
 
 
 class GridEntity(Entity):
@@ -37,7 +33,7 @@ class GridEntity(Entity):
             self.transition.transition(event_listener, timer_keeper)
 
     def begin_transition(self):
-        ...
+        pass
 
     def end_transition(self, timer_keeper):
         self.entity_keeper.set_grid_xy_to_world_xy(self)
@@ -234,7 +230,7 @@ class Goal(GridEntity):
             angle = uniform(0,2 * np.pi)
             magnitude = uniform(4,6)
             particle = Particle(self.x, self.y, np.cos(angle) * magnitude, np.sin(angle) * magnitude, timer_keeper)
-            self.entity_keeper.entity_keeper.addEntity(particle)
+            self.entity_keeper.entity_keeper.add_entity(particle)
 
     def respawn(self):
         while True:
@@ -242,7 +238,7 @@ class Goal(GridEntity):
             grid_y = np.random.randint(0, self.entity_keeper.entity_keeper.size_y // 2) * 2 + 1
             if grid_x != self.entity_keeper.grid_x or grid_y != self.entity_keeper.grid_y:
                 break
-        self.entity_keeper.entity_keeper.moveGridEntity(self, grid_x, grid_y)
+        self.entity_keeper.entity_keeper.move_grid_entity(self, grid_x, grid_y)
 
 
 class Score(GridEntity):
@@ -272,10 +268,10 @@ class PhysicalEntity(Entity):
         self.collided = False
 
     def update(self, event_listener, timer_keeper):
-        ...
+        pass
 
     def collision(self):
-        ...
+        pass
 
 
 class Projectile(PhysicalEntity):
@@ -291,7 +287,7 @@ class Projectile(PhysicalEntity):
         self.impulse_x += self.speed * timer_keeper.time_passed
 
     def destroy(self):
-        self.entity_keeper.removeEntity(self)
+        self.entity_keeper.remove_entity(self)
 
     def collision(self):
         self.destroy()
@@ -336,14 +332,14 @@ class Rocket(Projectile):
         self.impulse_x += self.speed * timer_keeper.time_passed
 
     def destroy(self):
-        self.entity_keeper.removeEntity(self)
+        self.entity_keeper.remove_entity(self)
 
     def collision(self):
         self.destroy()
 
     def make_particles(self,timer_keeper):
         for i in range(self.particle_count):
-            self.entity_keeper.addEntity(Particle(self.x + uniform(-self.spread, self.spread),
+            self.entity_keeper.add_entity(Particle(self.x + uniform(-self.spread, self.spread),
                                                  self.y + uniform(-self.spread, self.spread),
                                                  self.impulse_x * self.impulse_multiplier + uniform(
                                                      -self.impulse_modifier, self.impulse_modifier),

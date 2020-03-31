@@ -16,7 +16,7 @@ class Game:
         self.display = Display(self, 800, 600)
         self.event_listener = EventListener(self)
         self.timer_keeper = TimerKeeper()
-        self.grid = Grid(self, self.timer_keeper)
+        self.grid = Grid(self.timer_keeper)
         self.music = music(self)
         self.collisions = Collisions(self)
         self.physics = Physics(self)

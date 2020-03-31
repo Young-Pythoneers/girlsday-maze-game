@@ -14,7 +14,7 @@ class Transition:
 
     def define_transition(self, grid_destination_x, grid_destination_y):
         # Check if the transition to the destination is possible
-        if not self.entity.entity_keeper.entity_keeper.requestMove(self.entity.entity_keeper.grid_x, self.entity.entity_keeper.grid_y,
+        if not self.entity.entity_keeper.entity_keeper.request_move(self.entity.entity_keeper.grid_x, self.entity.entity_keeper.grid_y,
                                                           grid_destination_x, grid_destination_y):
             # If the transition is not possible, a transition is still initialized, but with a change of 0.
             # This way this entity is not moved, but it still waits for one transition interval.
@@ -22,7 +22,7 @@ class Transition:
             grid_destination_x = self.entity.entity_keeper.grid_x
             grid_destination_y = self.entity.entity_keeper.grid_y
         # Register the new grid position for the move
-        self.entity.entity_keeper.entity_keeper.moveGridEntity(self.entity, grid_destination_x, grid_destination_y)
+        self.entity.entity_keeper.entity_keeper.move_grid_entity(self.entity, grid_destination_x, grid_destination_y)
         self.transition_start_x, self.transition_start_y = self.entity.x, self.entity.y
         # Calculate the destination in world coordinates
         self.transition_stop_x, self.transition_stop_y = self.entity.entity_keeper.grid_xy_to_world_xy(grid_destination_x, grid_destination_y)

@@ -13,7 +13,6 @@ class Command:
 class Program(Command):
     def __init__(self):
         Command.__init__(self)
-        self.children = []
 
     def do_command(self):
         if self.command_pointer >= len(self.children):
