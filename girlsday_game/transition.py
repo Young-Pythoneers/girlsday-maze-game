@@ -1,7 +1,9 @@
+from abc import ABC
+
 import numpy as np
 
 
-class Transition:
+class Transition(ABC):
     def __init__(self, entity):
         self.entity = entity
         self.transition_function = None

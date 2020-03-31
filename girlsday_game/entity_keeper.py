@@ -20,7 +20,7 @@ class EntityKeeper:
             ent.update(event_listener)
 
 
-class GridInfo:
+class GridPointInfo:
     def __init__(
         self, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size
     ):
@@ -49,12 +49,12 @@ class GridInfo:
         ent.x, ent.y = self.grid_xy_to_world_xy(self.grid_x, self.grid_y)
 
 
-class GridPoint(EntityKeeper, GridInfo):
+class GridPoint(EntityKeeper, GridPointInfo):
     def __init__(
         self, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size
     ):
         EntityKeeper.__init__(self)
-        GridInfo.__init__(
+        GridPointInfo.__init__(
             self, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size
         )
 
@@ -163,16 +163,16 @@ class GridKeeper:
         # TODO Nathan END
         # print(self.grid[grid_destination_y][grid_destination_x])
 
-        self.player_with_in_grid = (
+        player_with_in_grid = (
             0 <= grid_destination_x < self.size_x
             and 0 <= grid_destination_y < self.size_y
         )
-        self.player_wall_collsion = [
+        player_wall_collsion = [
             (grid_destination_x + grid_source_x) / 2,
             (grid_destination_y + grid_source_y) / 2,
         ] in self.all_walls
 
-        return self.player_with_in_grid and not self.player_wall_collsion
+        return player_with_in_grid and not player_wall_collsion
 
     def begin_transition(self, timer_keeper):
         if len(self.player.command_queue) <= 0:

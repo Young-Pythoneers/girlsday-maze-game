@@ -25,7 +25,7 @@ class Collisions:
             math.pow(ent1.x - ent2.x, 2) + math.pow(ent1.y - ent2.y, 2)
         )
         if distance > 50:
-            return False, 0
+            return False
         points1 = [
             (ent1.x, ent1.y),
             (ent1.x + ent1.x_size, ent1.y),
@@ -56,7 +56,7 @@ class Collisions:
                 for p in points2
             ]
         )
-        return output1 or output2, distance
+        return output1 or output2
 
     def apply_collisions(self, entities):
         # For every PhysicalEntity, check if they go off the edge of the screen
@@ -81,7 +81,7 @@ class Collisions:
                 and (not (isinstance(ent1, Goal) or isinstance(ent2, Goal)))
                 and (not (isinstance(ent1, Score) or isinstance(ent2, Score)))
             ):
-                collided, distance = self.collision(ent1, ent2)
+                collided = self.collision(ent1, ent2)
                 if collided:
                     if isinstance(ent1, PhysicalEntity):
                         x1 = ent1.impulse_x

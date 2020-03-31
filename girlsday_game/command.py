@@ -1,4 +1,7 @@
-class Command:
+from abc import ABC
+
+
+class Command(ABC):
     def __init__(self):
         self.parent = None
         self.children = []

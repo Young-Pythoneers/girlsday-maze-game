@@ -5,7 +5,7 @@ import pygame
 from numpy.random import uniform
 
 from girlsday_game.music import Music
-from girlsday_game.transition import CosTransition, InstantTransition, WobblyTransition
+from girlsday_game.transition import CosTransition, WobblyTransition
 
 
 class Entity:
