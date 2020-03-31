@@ -22,21 +22,25 @@ class Entity():
     def update(self, event_listener):
         pass
 
-
-class GridEntity(Entity):
-    def __init__(self, entity_keeper=None):
-        Entity.__init__(self, entity_keeper)
+class TransitionOwner:
+    def __init__(self):
         self.transition = None
-
-    def update(self, event_listener, timer_keeper):
-        if self.entity_keeper.entity_keeper.in_transition:
-            self.transition.transition(event_listener, timer_keeper)
 
     def begin_transition(self):
         pass
 
     def end_transition(self, timer_keeper):
         self.entity_keeper.set_grid_xy_to_world_xy(self)
+
+
+class GridEntity(Entity, TransitionOwner):
+    def __init__(self, entity_keeper=None):
+        Entity.__init__(self, entity_keeper)
+        TransitionOwner.__init__(self)
+
+    def update(self, event_listener, timer_keeper):
+        if self.entity_keeper.entity_keeper.in_transition:
+            self.transition.transition(event_listener, timer_keeper)
 
 
 class Tile(GridEntity):
