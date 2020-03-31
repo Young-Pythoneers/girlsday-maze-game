@@ -243,6 +243,7 @@ class Goal(GridEntity):
 
 class Score(GridEntity):
     def __init__(self, entity_keeper=None):
+        GridEntity.__init__(self, entity_keeper)
         self.x = 10
         self.y = 10
         self.score = 0
