@@ -1,10 +1,29 @@
-from girlsday_game.entity import Entity, GridEntity, Tile, Wall, Player, Enemy, Goal, Score, PhysicalEntity, \
-    Projectile, Particle, Rocket, RocketDuck
+from girlsday_game.entity import (
+    Enemy,
+    Entity,
+    Goal,
+    GridEntity,
+    Particle,
+    PhysicalEntity,
+    Player,
+    Projectile,
+    Rocket,
+    RocketDuck,
+    Score,
+    Tile,
+    TransitionOwner,
+    Wall,
+)
 from girlsday_game.entity_keeper import Grid
 
 
 def test_entity():
     Entity()
+    assert True
+
+
+def test_transition_owner():
+    TransitionOwner()
     assert True
 
 

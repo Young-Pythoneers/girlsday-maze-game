@@ -18,13 +18,13 @@ class Display:
         self.background = pygame.image.load("../images/drs_p.jpg").convert()
 
     def draw_screen(self, entities):
-        #Fill the screen with a solid RGB color
+        # Fill the screen with a solid RGB color
         self.screen.fill((0, 0, 0))
-        #Draw the background
+        # Draw the background
         self.screen.blit(self.background, [0, 0])
         for ent in entities:
-            #Translate the image so it is centered on the center of the Entity
+            # Translate the image so it is centered on the center of the Entity
             x, y = ent.give_center_xy()
-            #Then draw it
+            # Then draw it
             self.screen.blit(ent.image, [x, y])
         pygame.display.update()

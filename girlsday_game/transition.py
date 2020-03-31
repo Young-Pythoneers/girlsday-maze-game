@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Transition:
     def __init__(self, entity):
         self.entity = entity
@@ -14,23 +15,36 @@ class Transition:
 
     def define_transition(self, grid_destination_x, grid_destination_y):
         # Check if the transition to the destination is possible
-        if not self.entity.entity_keeper.entity_keeper.request_move(self.entity.entity_keeper.grid_x, self.entity.entity_keeper.grid_y,
-                                                          grid_destination_x, grid_destination_y):
+        if not self.entity.entity_keeper.entity_keeper.request_move(
+            self.entity.entity_keeper.grid_x,
+            self.entity.entity_keeper.grid_y,
+            grid_destination_x,
+            grid_destination_y,
+        ):
             # If the transition is not possible, a transition is still initialized, but with a change of 0.
             # This way this entity is not moved, but it still waits for one transition interval.
             # This is needed to synchronize all transitioning entities.
             grid_destination_x = self.entity.entity_keeper.grid_x
             grid_destination_y = self.entity.entity_keeper.grid_y
         # Register the new grid position for the move
-        self.entity.entity_keeper.entity_keeper.move_grid_entity(self.entity, grid_destination_x, grid_destination_y)
+        self.entity.entity_keeper.entity_keeper.move_grid_entity(
+            self.entity, grid_destination_x, grid_destination_y
+        )
         self.transition_start_x, self.transition_start_y = self.entity.x, self.entity.y
         # Calculate the destination in world coordinates
-        self.transition_stop_x, self.transition_stop_y = self.entity.entity_keeper.grid_xy_to_world_xy(grid_destination_x, grid_destination_y)
+        (
+            self.transition_stop_x,
+            self.transition_stop_y,
+        ) = self.entity.entity_keeper.grid_xy_to_world_xy(
+            grid_destination_x, grid_destination_y
+        )
+
 
 class LinearTransition(Transition):
     def __init__(self, entity):
-        Transition.__init__(self,entity)
+        Transition.__init__(self, entity)
         self.transition_function = lambda x: x
+
 
 class CosTransition(Transition):
     def __init__(self, entity):
@@ -38,11 +52,17 @@ class CosTransition(Transition):
         self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
 
     def transition(self, event_listener, timer_keeper):
-        time_fraction = self.entity.entity_keeper.entity_keeper.transition_timer.timer / self.entity.entity_keeper.entity_keeper.transition_timer.timer_duration
+        time_fraction = (
+            self.entity.entity_keeper.entity_keeper.transition_timer.timer
+            / self.entity.entity_keeper.entity_keeper.transition_timer.timer_duration
+        )
         self.entity.x = self.transition_start_x + (
-                    self.transition_stop_x - self.transition_start_x) * self.transition_function(time_fraction)
+            self.transition_stop_x - self.transition_start_x
+        ) * self.transition_function(time_fraction)
         self.entity.y = self.transition_start_y + (
-                    self.transition_stop_y - self.transition_start_y) * self.transition_function(time_fraction)
+            self.transition_stop_y - self.transition_start_y
+        ) * self.transition_function(time_fraction)
+
 
 class WobblyTransition(Transition):
     def __init__(self, entity):
@@ -50,11 +70,20 @@ class WobblyTransition(Transition):
         self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
 
     def transition(self, event_listener, timer_keeper):
-        time_fraction = self.entity.entity_keeper.entity_keeper.transition_timer.timer / self.entity.entity_keeper.entity_keeper.transition_timer.timer_duration
+        time_fraction = (
+            self.entity.entity_keeper.entity_keeper.transition_timer.timer
+            / self.entity.entity_keeper.entity_keeper.transition_timer.timer_duration
+        )
         self.entity.x = self.transition_start_x + (
-                    self.transition_stop_x - self.transition_start_x) * self.transition_function(time_fraction)
-        self.entity.y = self.transition_start_y + (
-                    self.transition_stop_y - self.transition_start_y) * self.transition_function(time_fraction) + np.sin(np.pi * 4 * time_fraction) * 8
+            self.transition_stop_x - self.transition_start_x
+        ) * self.transition_function(time_fraction)
+        self.entity.y = (
+            self.transition_start_y
+            + (self.transition_stop_y - self.transition_start_y)
+            * self.transition_function(time_fraction)
+            + np.sin(np.pi * 4 * time_fraction) * 8
+        )
+
 
 class InstantTransition(Transition):
     def __init__(self, entity):
@@ -62,6 +91,9 @@ class InstantTransition(Transition):
         self.transition_function = None
 
     def transition(self, event_listener, timer_keeper):
-        time_fraction = self.entity.entity_keeper.entity_keeper.transition_timer.timer / self.entity.entity_keeper.entity_keeper.transition_timer.timer_duration
+        time_fraction = (
+            self.entity.entity_keeper.entity_keeper.transition_timer.timer
+            / self.entity.entity_keeper.entity_keeper.transition_timer.timer_duration
+        )
         self.entity.x = self.transition_stop_x
         self.entity.y = self.transition_stop_y

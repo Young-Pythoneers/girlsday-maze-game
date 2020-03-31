@@ -4,6 +4,7 @@ from girlsday_game.entity import Entity, PhysicalEntity
 from girlsday_game.listener import EventListener
 from girlsday_game.timer_keeper import TimerKeeper
 
+
 class Physics:
     """ Class that applies physics to PhysicalEntities
 
@@ -18,7 +19,9 @@ class Physics:
         self.friction = 3
         self.gravity = 10
 
-    def apply_physics(self, entities: Entity, event_listener: EventListener, timer_keeper: TimerKeeper) -> None:
+    def apply_physics(
+        self, entities: Entity, event_listener: EventListener, timer_keeper: TimerKeeper
+    ) -> None:
         """ Function that applies the following physical effects to PhysicalEntities only:
         friction, gravity and kinetic energy.
 
@@ -30,23 +33,23 @@ class Physics:
             None
         """
         for ent in entities:
-            #Only apply Physics to PhysicalEntities
+            # Only apply Physics to PhysicalEntities
             if isinstance(ent, PhysicalEntity):
-                #Apply friction
-                #The higher the mass, the less effect friction has.
+                # Apply friction
+                # The higher the mass, the less effect friction has.
                 ent.impulse_x /= (
                     1 + (self.friction * timer_keeper.time_passed) / ent.mass
                 )
                 ent.impulse_y /= (
                     1 + (self.friction * timer_keeper.time_passed) / ent.mass
                 )
-                if ent.y <= self.game.display.screen_size_y - ent.y_size and \
-                    not ent.collided:#This if statement fixes weird behaviour at the screen's bottom.
-                    #Apply gravity
-                    ent.impulse_y += (
-                        self.gravity * ent.mass * timer_keeper.time_passed
-                    )
-                #Update the Entity's position acording to its impulse (kinetic energy) and mass.
-                #The higher the mass, the more impulse is needed for movement.
+                if (
+                    ent.y <= self.game.display.screen_size_y - ent.y_size
+                    and not ent.collided
+                ):  # This if statement fixes weird behaviour at the screen's bottom.
+                    # Apply gravity
+                    ent.impulse_y += self.gravity * ent.mass * timer_keeper.time_passed
+                # Update the Entity's position acording to its impulse (kinetic energy) and mass.
+                # The higher the mass, the more impulse is needed for movement.
                 ent.x += ent.impulse_x / ent.mass
                 ent.y += ent.impulse_y / ent.mass

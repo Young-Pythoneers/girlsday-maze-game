@@ -1,6 +1,7 @@
-from girlsday_game.music import Music
-from girlsday_game.game import Game
 from pygame import mixer
+
+from girlsday_game.game import Game
+from girlsday_game.music import Music
 
 
 def test_music():

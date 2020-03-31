@@ -10,6 +10,7 @@ class Command:
     def add_child(self, command):
         ...
 
+
 class Program(Command):
     def __init__(self):
         Command.__init__(self)
@@ -25,6 +26,7 @@ class Program(Command):
         command.parent = self
         self.children.append(command)
 
+
 class MoveCommand(Command):
     def __init__(self):
         Command.__init__(self)
@@ -32,6 +34,7 @@ class MoveCommand(Command):
     def do_command(self):
         self.parent.command_pointer += 1
         print("MoveCommand")
+
 
 class AttackCommand(Command):
     def __init__(self):
@@ -41,6 +44,7 @@ class AttackCommand(Command):
         self.parent.command_pointer += 1
         print("AttackCommand")
 
+
 class JumpCommand(Command):
     def __init__(self):
         Command.__init__(self)
@@ -48,6 +52,7 @@ class JumpCommand(Command):
     def do_command(self):
         self.parent.command_pointer += 1
         print("JumpCommand")
+
 
 class PiepCommand(Command):
     def __init__(self):
@@ -57,6 +62,7 @@ class PiepCommand(Command):
         self.parent.command_pointer += 1
         print("PiepCommand")
 
+
 class LoopCommand(Command):
     def __init__(self, repeats):
         Command.__init__(self)
@@ -65,7 +71,7 @@ class LoopCommand(Command):
         self.iterator = 1
 
     def do_command(self):
-        #print("LoopCommand")
+        # print("LoopCommand")
         command = self.children[self.command_pointer]
         command.do_command()
         self.loop_break = not self.iterator < self.repeats
@@ -80,6 +86,7 @@ class LoopCommand(Command):
     def add_child(self, command):
         command.parent = self
         self.children.append(command)
+
 
 if __name__ == "__main__":
     program = Program()
@@ -99,7 +106,7 @@ if __name__ == "__main__":
     loop.add_child(loop2)
 
     program.add_child(loop)
-    #print(program.children)
+    # print(program.children)
     while True:
         do_we_continue = program.do_command()
         if not do_we_continue:

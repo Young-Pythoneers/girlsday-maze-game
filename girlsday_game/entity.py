@@ -1,11 +1,14 @@
 import math
+
 import numpy as np
-from numpy.random import uniform
 import pygame
+from numpy.random import uniform
+
 from girlsday_game.music import Music
 from girlsday_game.transition import CosTransition, InstantTransition, WobblyTransition
 
-class Entity():
+
+class Entity:
     def __init__(self, entity_keeper=None):
         self.entity_keeper = entity_keeper
         self.x = 0
@@ -21,6 +24,7 @@ class Entity():
 
     def update(self, event_listener):
         pass
+
 
 class TransitionOwner:
     def __init__(self):
@@ -45,7 +49,7 @@ class GridEntity(Entity, TransitionOwner):
 
 class Tile(GridEntity):
     def __init__(self, entity_keeper=None):
-        GridEntity.__init__(self,entity_keeper)
+        GridEntity.__init__(self, entity_keeper)
         self.image = pygame.Surface((50, 50))
         self.image.fill((255, 0, 0))
         self.x_size = 50
@@ -118,8 +122,13 @@ class Player(GridEntity):
             self.transition.transition(event_listener, timer_keeper)
             # Calculate the distance to the goal
             distance_to_goal = math.sqrt(
-                math.pow((self.entity_keeper.grid_x - self.goal.entity_keeper.grid_x), 2) + math.pow(
-                    (self.entity_keeper.grid_y - self.goal.entity_keeper.grid_y), 2))
+                math.pow(
+                    (self.entity_keeper.grid_x - self.goal.entity_keeper.grid_x), 2
+                )
+                + math.pow(
+                    (self.entity_keeper.grid_y - self.goal.entity_keeper.grid_y), 2
+                )
+            )
             if distance_to_goal <= 0.7:
                 # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
                 self.goal.eaten = True
@@ -141,7 +150,7 @@ class Player(GridEntity):
         # calculate the destination of the transition in grid coordinates
         grid_destination_x = self.entity_keeper.grid_x + x_change
         grid_destination_y = self.entity_keeper.grid_y + y_change
-        #Define where the transition should stop, shit will also check if the move is possible
+        # Define where the transition should stop, shit will also check if the move is possible
         self.transition.define_transition(grid_destination_x, grid_destination_y)
 
 
@@ -158,9 +167,20 @@ class Enemy(GridEntity):
         self.transition = CosTransition(self)
         self.player = Player
 
-        self.command_queue = [[-2,0],[2,0],[2,0],[2,0], [0,2], [2,0], [-2,0], [0,-2], [-2,0], [-2,0]]  # TODO Replace this by a Program instance in the future
+        self.command_queue = [
+            [-2, 0],
+            [2, 0],
+            [2, 0],
+            [2, 0],
+            [0, 2],
+            [2, 0],
+            [-2, 0],
+            [0, -2],
+            [-2, 0],
+            [-2, 0],
+        ]  # TODO Replace this by a Program instance in the future
 
-        self.command_index = 0 #TODO uitleg: Ik heb dit toegevoegd om bij te houden welk commando er uitevoerd moet worden
+        self.command_index = 0  # TODO uitleg: Ik heb dit toegevoegd om bij te houden welk commando er uitevoerd moet worden
 
         # if len(self.command_queue) > 0:
         #     # If there is a command on the queue, pop it and do it
@@ -184,15 +204,15 @@ class Enemy(GridEntity):
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
 
-        #TODO uitleg: gebruik de huidige command_index om het commando op te halen
+        # TODO uitleg: gebruik de huidige command_index om het commando op te halen
         x_change = self.command_queue[self.command_index][0]
         y_change = self.command_queue[self.command_index][1]
-        #TODO uitleg: voor de volgende transitie, incrementeer de commando_index
+        # TODO uitleg: voor de volgende transitie, incrementeer de commando_index
         self.command_index += 1
-        #TODO uitleg: als de command_index uit de array loopt, wordt hij gereset naar 0 en begint dus van voren af aan
+        # TODO uitleg: als de command_index uit de array loopt, wordt hij gereset naar 0 en begint dus van voren af aan
         if self.command_index >= len(self.command_queue):
             self.command_index = 0
-        #print(x_change, y_change)
+        # print(x_change, y_change)
 
         grid_destination_x = self.entity_keeper.grid_x + x_change
         grid_destination_y = self.entity_keeper.grid_y + y_change
@@ -206,6 +226,7 @@ class Enemy(GridEntity):
 
 # TODO Nathan END
 
+
 class Goal(GridEntity):
     def __init__(self, entity_keeper=None):
         GridEntity.__init__(self, entity_keeper)
@@ -217,13 +238,13 @@ class Goal(GridEntity):
 
     def update(self, event_listener, timer_keeper):
         pass
-        #print(self.eaten)
+        # print(self.eaten)
 
     def end_transition(self, timer_keeper):
         if self.eaten == True:
             self.player.score.score += 1
             self.player.score.score += 1
-            Music.sound_handler('../sounds/munch.wav', 0)
+            Music.sound_handler("../sounds/munch.wav", 0)
             self.make_explosion(timer_keeper)
             self.respawn()
             self.eaten = False
@@ -231,16 +252,31 @@ class Goal(GridEntity):
 
     def make_explosion(self, timer_keeper):
         for i in range(20):
-            angle = uniform(0,2 * np.pi)
-            magnitude = uniform(4,6)
-            particle = Particle(self.x, self.y, np.cos(angle) * magnitude, np.sin(angle) * magnitude, timer_keeper)
+            angle = uniform(0, 2 * np.pi)
+            magnitude = uniform(4, 6)
+            particle = Particle(
+                self.x,
+                self.y,
+                np.cos(angle) * magnitude,
+                np.sin(angle) * magnitude,
+                timer_keeper,
+            )
             self.entity_keeper.entity_keeper.add_entity(particle)
 
     def respawn(self):
         while True:
-            grid_x = np.random.randint(0, self.entity_keeper.entity_keeper.size_x // 2) * 2 + 1
-            grid_y = np.random.randint(0, self.entity_keeper.entity_keeper.size_y // 2) * 2 + 1
-            if grid_x != self.entity_keeper.grid_x or grid_y != self.entity_keeper.grid_y:
+            grid_x = (
+                np.random.randint(0, self.entity_keeper.entity_keeper.size_x // 2) * 2
+                + 1
+            )
+            grid_y = (
+                np.random.randint(0, self.entity_keeper.entity_keeper.size_y // 2) * 2
+                + 1
+            )
+            if (
+                grid_x != self.entity_keeper.grid_x
+                or grid_y != self.entity_keeper.grid_y
+            ):
                 break
         self.entity_keeper.entity_keeper.move_grid_entity(self, grid_x, grid_y)
 
@@ -342,14 +378,23 @@ class Rocket(Projectile):
     def collision(self):
         self.destroy()
 
-    def make_particles(self,timer_keeper):
+    def make_particles(self, timer_keeper):
         for i in range(self.particle_count):
-            self.entity_keeper.add_entity(Particle(self.x + uniform(-self.spread, self.spread),
-                                                 self.y + uniform(-self.spread, self.spread),
-                                                 self.impulse_x * self.impulse_multiplier + uniform(
-                                                     -self.impulse_modifier, self.impulse_modifier),
-                                                 self.impulse_y * self.impulse_multiplier + uniform(
-                                                     -self.impulse_modifier, self.impulse_modifier, timer_keeper, self.entity_keeper)))
+            self.entity_keeper.add_entity(
+                Particle(
+                    self.x + uniform(-self.spread, self.spread),
+                    self.y + uniform(-self.spread, self.spread),
+                    self.impulse_x * self.impulse_multiplier
+                    + uniform(-self.impulse_modifier, self.impulse_modifier),
+                    self.impulse_y * self.impulse_multiplier
+                    + uniform(
+                        -self.impulse_modifier,
+                        self.impulse_modifier,
+                        timer_keeper,
+                        self.entity_keeper,
+                    ),
+                )
+            )
 
 
 class RocketDuck(PhysicalEntity):
@@ -368,7 +413,7 @@ class RocketDuck(PhysicalEntity):
             self.collision()
             self.collided = False
         self.angle += (
-                self.turn_speed * np.random.uniform(-1, 1) * timer_keeper.time_passed
+            self.turn_speed * np.random.uniform(-1, 1) * timer_keeper.time_passed
         )
         if self.angle < 0:
             self.angle += 2 * np.pi

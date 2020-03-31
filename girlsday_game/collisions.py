@@ -1,10 +1,19 @@
-from girlsday_game.music import Music
 import itertools
 import math
 
 import numpy as np
 
-from girlsday_game.entity import PhysicalEntity, Projectile, Tile, Player, Goal, Wall, Score
+from girlsday_game.entity import (
+    Goal,
+    PhysicalEntity,
+    Player,
+    Projectile,
+    Score,
+    Tile,
+    Wall,
+)
+from girlsday_game.music import Music
+
 
 class Collisions:
     def __init__(self, game):
@@ -12,8 +21,10 @@ class Collisions:
 
     def collision(selfs, ent1, ent2):
         penetration = 0
-        distance = math.sqrt(math.pow(ent1.x - ent2.x, 2) + math.pow(ent1.y - ent2.y, 2))
-        if  distance > 50:
+        distance = math.sqrt(
+            math.pow(ent1.x - ent2.x, 2) + math.pow(ent1.y - ent2.y, 2)
+        )
+        if distance > 50:
             return False, 0
         points1 = [
             (ent1.x, ent1.y),
@@ -48,8 +59,8 @@ class Collisions:
         return output1 or output2, distance
 
     def apply_collisions(self, entities):
-        #For every PhysicalEntity, check if they go off the edge of the screen
-        #If so, reverse the impulse
+        # For every PhysicalEntity, check if they go off the edge of the screen
+        # If so, reverse the impulse
         for ent in entities:
             if isinstance(ent, PhysicalEntity):
                 if ent.x < 0 or ent.x > self.game.display.screen_size_x - ent.x_size:
@@ -60,14 +71,16 @@ class Collisions:
                     ent.collided = True
                 ent.x = np.clip(ent.x, 0, self.game.display.screen_size_x - ent.x_size)
                 ent.y = np.clip(ent.y, 0, self.game.display.screen_size_y - ent.y_size)
-        #For every pair of PhysicalEntities, check if they are in a collision
-        #If so, they each give eachother a part of their impulse
+        # For every pair of PhysicalEntities, check if they are in a collision
+        # If so, they each give eachother a part of their impulse
         for ent1, ent2 in list(itertools.combinations(entities, 2)):
-            if (not (isinstance(ent1, Projectile) and isinstance(ent2, Projectile)) and
-                    (not (isinstance(ent1, Tile) or isinstance(ent2, Tile))) and
-                    (not (isinstance(ent1, Player) or isinstance(ent2, Player))) and
-                    (not (isinstance(ent1, Goal) or isinstance(ent2, Goal))) and
-                    (not (isinstance(ent1, Score) or isinstance(ent2, Score)))):
+            if (
+                not (isinstance(ent1, Projectile) and isinstance(ent2, Projectile))
+                and (not (isinstance(ent1, Tile) or isinstance(ent2, Tile)))
+                and (not (isinstance(ent1, Player) or isinstance(ent2, Player)))
+                and (not (isinstance(ent1, Goal) or isinstance(ent2, Goal)))
+                and (not (isinstance(ent1, Score) or isinstance(ent2, Score)))
+            ):
                 collided, distance = self.collision(ent1, ent2)
                 if collided:
                     if isinstance(ent1, PhysicalEntity):

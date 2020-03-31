@@ -1,6 +1,7 @@
+from time import time
+
 from girlsday_game.timer import Timer
 
-from time import time
 
 class TimerKeeper:
     def __init__(self):
@@ -10,11 +11,11 @@ class TimerKeeper:
         self.time_passed = self.current_time - self.previous_time
 
     def add_timer(self, timer_duration):
-        timer = Timer(timer_duration,self)
+        timer = Timer(timer_duration, self)
         self.timers.append(timer)
         return timer
 
-    def remove_timer(self,timer):
+    def remove_timer(self, timer):
         self.timers.remove(timer)
 
     def update_timers(self):

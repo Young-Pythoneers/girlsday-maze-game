@@ -1,5 +1,6 @@
 import numpy as np
-from girlsday_game.entity import GridEntity, Tile, Wall, Player
+
+from girlsday_game.entity import GridEntity, Player, Tile, Wall
 
 
 class EntityKeeper:
@@ -14,14 +15,15 @@ class EntityKeeper:
         ent.entity_keeper = None
         self.entities.remove(ent)
 
-    def update_entities(self, event_listener):
+    def update_entities(self, event_listener, timer_keeper):
         for ent in self.entities:
             ent.update(event_listener)
 
 
-class GridPoint(EntityKeeper):
-    def __init__(self, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size):
-        EntityKeeper.__init__(self)
+class GridInfo:
+    def __init__(
+        self, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size
+    ):
         self.entity_keeper = entity_keeper
         self.grid_x = grid_x
         self.grid_y = grid_y
@@ -31,17 +33,34 @@ class GridPoint(EntityKeeper):
         self.wall_size = wall_size
 
     def grid_xy_to_world_xy(self, grid_x, grid_y):
-        x = (grid_x // 2) * self.tile_size + np.ceil(grid_x / 2) * self.wall_size + self.zero_x
-        y = (grid_y // 2) * self.tile_size + np.ceil(grid_y / 2) * self.wall_size + self.zero_y
+        x = (
+            (grid_x // 2) * self.tile_size
+            + np.ceil(grid_x / 2) * self.wall_size
+            + self.zero_x
+        )
+        y = (
+            (grid_y // 2) * self.tile_size
+            + np.ceil(grid_y / 2) * self.wall_size
+            + self.zero_y
+        )
         return x, y
 
     def set_grid_xy_to_world_xy(self, ent):
         ent.x, ent.y = self.grid_xy_to_world_xy(self.grid_x, self.grid_y)
 
 
-class Grid(EntityKeeper):
-    def __init__(self, timer_keeper):
+class GridPoint(EntityKeeper, GridInfo):
+    def __init__(
+        self, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size
+    ):
         EntityKeeper.__init__(self)
+        GridInfo.__init__(
+            self, entity_keeper, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size
+        )
+
+
+class GridKeeper:
+    def __init__(self, timer_keeper):
         self.size_x = 0
         self.size_y = 0
         self.zero_x = 50
@@ -60,17 +79,19 @@ class Grid(EntityKeeper):
         self.create_grid(level)
 
     def load_level(self):
-        level = np.array([
-            "wwwwwwwwwwwwwww",
-            "wtntntntntntntw",
-            "wnwwwwwnwwwwwnw",
-            "wtwtntntwtntwtw",
-            "wnwnwwwwwwwnwnw",
-            "wtntwtntntntwtw",
-            "wnnnwwwwwnnnwnw",
-            "wtntntntntntntw",
-            "wwwwwwwwwwwwwww",
-        ])
+        level = np.array(
+            [
+                "wwwwwwwwwwwwwww",
+                "wtntntntntntntw",
+                "wnwwwwwnwwwwwnw",
+                "wtwtntntwtntwtw",
+                "wnwnwwwwwwwnwnw",
+                "wtntwtntntntwtw",
+                "wnnnwwwwwnnnwnw",
+                "wtntntntntntntw",
+                "wwwwwwwwwwwwwww",
+            ]
+        )
         return level
 
     def create_grid(self, level):
@@ -82,7 +103,9 @@ class Grid(EntityKeeper):
         for i in range(self.size_y):
             grid_row = []
             for j in range(self.size_x):
-                gridPoint = GridPoint(self, j, i, self.zero_x, self.zero_y, self.tile_size, self.wall_size)
+                gridPoint = GridPoint(
+                    self, j, i, self.zero_x, self.zero_y, self.tile_size, self.wall_size
+                )
                 gridPoint.entity_keeper = self
                 grid_row.append(gridPoint)
             self.grid.append(grid_row)
@@ -126,10 +149,65 @@ class Grid(EntityKeeper):
             y_change += 2
         return x_change, y_change
 
+    def move_grid_entity(self, ent, destination_x, destination_y):
+        ent.entity_keeper.remove_entity(ent)
+        self.grid[destination_y][destination_x].add_entity(ent)
+
+    def request_move(
+        self, grid_source_x, grid_source_y, grid_destination_x, grid_destination_y
+    ):
+        # TODO Nathan BEGIN
+        # Nathan: voordat een entity zich naar een nieuw GridPoint verplaatst, vraagt hij aan grid of dit wel kan / mag
+        # Voor nu wordt er alleen gekeken of een entity niet van de grid afloopt
+        # Je dit kunnen uitbreiden door te kijken of er een wall tussen de source en destination zit
+        # TODO Nathan END
+        # print(self.grid[grid_destination_y][grid_destination_x])
+
+        self.player_with_in_grid = (
+            0 <= grid_destination_x < self.size_x
+            and 0 <= grid_destination_y < self.size_y
+        )
+        self.player_wall_collsion = [
+            (grid_destination_x + grid_source_x) / 2,
+            (grid_destination_y + grid_source_y) / 2,
+        ] in self.all_walls
+
+        return self.player_with_in_grid and not self.player_wall_collsion
+
+    def begin_transition(self, timer_keeper):
+        if len(self.player.command_queue) <= 0:
+            return False
+        self.transition_timer = timer_keeper.add_timer(self.transition_cooldown)
+        self.in_transition = True
+        for ent in self.entities:
+            if isinstance(ent, GridEntity):
+                ent.begin_transition()
+        return True
+
+    def end_transition(self, timer_keeper):
+        self.in_transition = False
+        for ent in self.entities:
+            if isinstance(ent, GridEntity):
+                ent.end_transition(timer_keeper)
+
+
+class Grid(EntityKeeper, GridKeeper):
+    def __init__(self, timer_keeper):
+        EntityKeeper.__init__(self)
+        GridKeeper.__init__(self, timer_keeper)
+
     def update_entities(self, event_listener, timer_keeper):
         # Check the event_listener to see if there is keyboard input
-        if self.input_timer.check_timer() and not self.play and (
-                event_listener.K_LEFT or event_listener.K_RIGHT or event_listener.K_UP or event_listener.K_DOWN):
+        if (
+            self.input_timer.check_timer()
+            and not self.play
+            and (
+                event_listener.K_LEFT
+                or event_listener.K_RIGHT
+                or event_listener.K_UP
+                or event_listener.K_DOWN
+            )
+        ):
             x_change, y_change = self.check_input(event_listener)
             # If there is input, apply the input by putting a command on the player's queue
             self.player.command_queue.append((x_change, y_change))
@@ -151,37 +229,3 @@ class Grid(EntityKeeper):
         # Ask all entities to update their world coordinates and to do whatever they do
         for ent in self.entities:
             ent.update(event_listener, timer_keeper)
-
-    def move_grid_entity(self, ent, destination_x, destination_y):
-        ent.entity_keeper.remove_entity(ent)
-        self.grid[destination_y][destination_x].add_entity(ent)
-
-    def request_move(self, grid_source_x, grid_source_y, grid_destination_x, grid_destination_y):
-        # TODO Nathan BEGIN
-        # Nathan: voordat een entity zich naar een nieuw GridPoint verplaatst, vraagt hij aan grid of dit wel kan / mag
-        # Voor nu wordt er alleen gekeken of een entity niet van de grid afloopt
-        # Je dit kunnen uitbreiden door te kijken of er een wall tussen de source en destination zit
-        # TODO Nathan END
-        # print(self.grid[grid_destination_y][grid_destination_x])
-
-        self.player_with_in_grid = 0 <= grid_destination_x < self.size_x and 0 <= grid_destination_y < self.size_y
-        self.player_wall_collsion = [(grid_destination_x + grid_source_x) / 2,
-                                     (grid_destination_y + grid_source_y) / 2] in self.all_walls
-
-        return self.player_with_in_grid and not self.player_wall_collsion
-
-    def begin_transition(self, timer_keeper):
-        if len(self.player.command_queue) <= 0:
-            return False
-        self.transition_timer = timer_keeper.add_timer(self.transition_cooldown)
-        self.in_transition = True
-        for ent in self.entities:
-            if isinstance(ent, GridEntity):
-                ent.begin_transition()
-        return True
-
-    def end_transition(self, timer_keeper):
-        self.in_transition = False
-        for ent in self.entities:
-            if isinstance(ent, GridEntity):
-                ent.end_transition(timer_keeper)
