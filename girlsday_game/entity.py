@@ -2,7 +2,7 @@ import math
 import numpy as np
 from numpy.random import uniform
 import pygame
-from girlsday_game.music import music
+from girlsday_game.music import Music
 from girlsday_game.transition import CosTransition, InstantTransition, WobblyTransition
 
 class Entity():
@@ -219,7 +219,7 @@ class Goal(GridEntity):
         if self.eaten == True:
             self.player.score.score += 1
             self.player.score.score += 1
-            music.sound_handler('../sounds/munch.wav', 0)
+            Music.sound_handler('../sounds/munch.wav', 0)
             self.make_explosion(timer_keeper)
             self.respawn()
             self.eaten = False

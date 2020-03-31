@@ -1,4 +1,4 @@
-from girlsday_game.music import music
+from girlsday_game.music import Music
 import itertools
 import math
 
