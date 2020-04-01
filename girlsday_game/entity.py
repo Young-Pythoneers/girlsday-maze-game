@@ -130,10 +130,10 @@ class Player(GridMover):
 
         # variables to track the transition
         self.transition = WobblyTransition(self)
-
+        #TODO LSP violation: not all superclasses have a command_queue
         self.command_queue = []  # TODO Replace this by a Program instance in the future
-        self.score = score#TODO violation
-        self.goal = goal#TODO violation
+        self.score = score#TODO LSP violation
+        self.goal = goal#TODO LSP violation
         self.goal.player = self
 
     def update(self, event_listener, timer_container: TimerContainer):
@@ -252,23 +252,23 @@ class Goal(TransitionalEntity):
         self.image = pygame.image.load("../images/lettuce.png")
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
-        self.eaten = False#TODO violation
-        self.player = None#TODO violation
+        self.eaten = False#TODO LSP violation
+        self.player = None#TODO LSP violation
 
     def begin_transition(self):
-        pass #TODO violation: this has to do something, otherwise it is a violation
+        pass #TODO LSP violation: this has to do something, otherwise it is a violation
 
     def end_transition(self, timer_container: TimerContainer):
         if self.eaten == True:
             self.player.score.score += 1
             self.player.score.score += 1
             Music.sound_handler("../sounds/munch.wav", 0)
-            self.make_explosion(timer_container)
-            self.respawn()
+            self.__make_explosion(timer_container)
+            self.__respawn()
             self.eaten = False
         self.entity_container.set_grid_xy_to_world_xy(self)
 
-    def make_explosion(self, timer_container: TimerContainer):#TODO violation
+    def __make_explosion(self, timer_container: TimerContainer):#TODO LSP violation resolved?
         for i in range(20):
             angle = uniform(0, 2 * np.pi)
             magnitude = uniform(4, 6)
@@ -281,7 +281,7 @@ class Goal(TransitionalEntity):
             )
             self.entity_container.entity_container.add_entity(particle)
 
-    def respawn(self):#TODO violation
+    def __respawn(self):#TODO LSP violation resolved?
         while True:
             grid_x = (
                 np.random.randint(0, self.entity_container.entity_container.size_x // 2) * 2
