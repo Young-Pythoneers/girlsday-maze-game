@@ -14,7 +14,10 @@ from girlsday_game.entity import (
     TransitionOwner,
     Wall,
 )
-from girlsday_game.entity_keeper import Grid
+from girlsday_game.entity import EntityContainer, Grid, GridPoint
+from girlsday_game.timer import TimerContainer
+
+import pygame
 
 
 def test_entity():
@@ -38,17 +41,19 @@ def test_tile():
 
 
 def test_wall():
-    Wall(Grid())
+    Wall(GridPoint(0, 0, 0, 0, 0, 0))
     assert True
 
 
 def test_player():
-    Player()
+    pygame.init()
+    Player(Goal(), Score())
     assert True
 
 
 def test_enemy():
-    Enemy()
+    pygame.init()
+    Enemy(Player(Goal(), Score()))
     assert True
 
 
@@ -58,30 +63,46 @@ def test_goal():
 
 
 def test_score():
+    pygame.init()
     Score()
     assert True
 
 
 def test_physical_entity():
-    PhysicalEntity()
+    PhysicalEntity(0, 0, 0, 0)
     assert True
 
 
 def test_projectile():
-    Projectile()
+    Projectile(0, 0, 0, 0)
     assert True
 
 
 def test_particle():
-    Particle()
+    Particle(0, 0, 0, 0, TimerContainer())
     assert True
 
 
 def test_rocket():
-    Rocket()
+    Rocket(0, 0, 0, 0)
     assert True
 
 
 def test_rocket_duck():
-    RocketDuck()
+    RocketDuck(0, 0, 0, 0)
+    assert True
+
+
+def test_entity_keeper():
+    EntityContainer()
+    assert True
+
+
+def test_grid_point():
+    GridPoint(EntityContainer, 0, 0, 0, 0, 0, 0)
+    assert True
+
+
+def test_grid():
+    Grid(TimerContainer())
     assert True

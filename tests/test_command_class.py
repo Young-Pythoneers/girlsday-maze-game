@@ -10,35 +10,35 @@ from girlsday_game.command import (
 
 
 def test_command():
-    command_class = Command()
+    Command()
     assert True
 
 
 def test_program():
-    program_class = Program()
+    Program()
     assert True
 
 
 def test_move_command():
-    move_command_class = MoveCommand()
+    MoveCommand()
     assert True
 
 
 def test_attack_command():
-    attack_command_class = AttackCommand()
+    AttackCommand()
     assert True
 
 
 def test_jump_command():
-    jump_command_class = JumpCommand()
+    JumpCommand()
     assert True
 
 
 def test_piep_command():
-    piep_command_class = PiepCommand()
+    PiepCommand()
     assert True
 
 
 def test_loop_command():
-    loop_command_class = LoopCommand
+    LoopCommand
     assert True

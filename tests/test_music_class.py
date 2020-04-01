@@ -6,5 +6,5 @@ from girlsday_game.music import Music
 
 def test_music():
     mixer.__PYGAMEinit__()
-    Music_class = Music(Game)
+    Music(Game)
     assert True

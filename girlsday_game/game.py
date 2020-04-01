@@ -2,12 +2,11 @@ import pygame
 
 from girlsday_game.collisions import Collisions
 from girlsday_game.display import Display
-from girlsday_game.entity import Enemy, Goal, Player, Score
-from girlsday_game.entity_keeper import Grid
+from girlsday_game.entity import Enemy, Goal, Grid, Player, Score
 from girlsday_game.listener import EventListener
 from girlsday_game.music import Music
 from girlsday_game.physics import Physics
-from girlsday_game.timer_keeper import TimerKeeper
+from girlsday_game.timer import TimerContainer
 
 
 class Game:
@@ -16,8 +15,8 @@ class Game:
         pygame.init()
         self.display = Display(self, 800, 600)
         self.event_listener = EventListener(self)
-        self.timer_keeper = TimerKeeper()
-        self.grid = Grid(self.timer_keeper)
+        self.timer_container = TimerContainer()
+        self.grid = Grid(self.timer_container)
         self.music = Music(self)
         self.collisions = Collisions(self)
         self.physics = Physics(self)
@@ -37,11 +36,11 @@ class Game:
             do_we_continue = self.event_listener.listen()
             self.collisions.apply_collisions(self.grid.entities)
             self.physics.apply_physics(
-                self.grid.entities, self.event_listener, self.timer_keeper
+                self.grid.entities, self.event_listener, self.timer_container
             )
-            self.grid.update_entities(self.event_listener, self.timer_keeper)
+            self.grid.update_entities(self.event_listener, self.timer_container)
             self.display.draw_screen(self.grid.entities)
-            self.timer_keeper.update_timers()
+            self.timer_container.update_timers()
 
             if not do_we_continue is None:
                 break
