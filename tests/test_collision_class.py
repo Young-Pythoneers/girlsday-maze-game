@@ -3,5 +3,5 @@ from girlsday_game.game import Game
 
 
 def test_collision():
-    collision_class = Collisions(Game)
+    Collisions(Game)
     assert True

@@ -9,25 +9,25 @@ from girlsday_game.transition import (
 
 
 def test_transition():
-    transition_class = Transition(Entity)
+    Transition(Entity)
     assert True
 
 
 def test_linear_transition():
-    linear_transition_class = LinearTransition(Entity)
+    LinearTransition(Entity)
     assert True
 
 
 def test_cosine_transition():
-    cosine_transition_class = CosTransition(Entity)
+    CosTransition(Entity)
     assert True
 
 
 def test_wobbly_transition():
-    wobbly_transition_class = WobblyTransition(Entity)
+    WobblyTransition(Entity)
     assert True
 
 
 def test_instant_transition():
-    instant_transition_class = InstantTransition(Entity)
+    InstantTransition(Entity)
     assert True

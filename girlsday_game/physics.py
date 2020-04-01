@@ -1,8 +1,10 @@
+from typing import List
+
 import numpy as np
 
 from girlsday_game.entity import Entity, PhysicalEntity
 from girlsday_game.listener import EventListener
-from girlsday_game.timer_keeper import TimerKeeper
+from girlsday_game.timer import TimerContainer
 
 
 class Physics:
@@ -20,17 +22,15 @@ class Physics:
         self.gravity = 10
 
     def apply_physics(
-        self, entities: Entity, event_listener: EventListener, timer_keeper: TimerKeeper
+        self, entities: List[Entity], event_listener: EventListener, timer_keeper: TimerContainer
     ) -> None:
         """ Function that applies the following physical effects to PhysicalEntities only:
         friction, gravity and kinetic energy.
 
         Args:
-            entities (Entity): All entities in the game
-            event_listener (EventListener): The event listener that listens for keyboard input
-
-        Returns:
-            None
+            entities: All entities in the game
+            event_listener: The event listener that listens for keyboard input
+            timer_keeper: The timer keeper that tracks all timers
         """
         for ent in entities:
             # Only apply Physics to PhysicalEntities

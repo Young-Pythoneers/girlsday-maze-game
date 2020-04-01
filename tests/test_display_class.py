@@ -3,5 +3,5 @@ from girlsday_game.game import Game
 
 
 def test_display():
-    display_class = Display(Game, 800, 600)
+    Display(Game, 800, 600)
     assert True

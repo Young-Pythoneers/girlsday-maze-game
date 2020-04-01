@@ -3,5 +3,5 @@ from girlsday_game.listener import EventListener
 
 
 def test_even_listener():
-    listener_class = EventListener(Game)
+    EventListener(Game)
     assert True
