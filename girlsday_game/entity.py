@@ -11,6 +11,7 @@ from girlsday_game.timer import Timer, TimerContainer
 from girlsday_game.transition import CosTransition, WobblyTransition
 from girlsday_game.timer import Timer, TimerContainer
 
+
 class Entity:
     def __init__(self, entity_container: EntityContainer = None):
         self.entity_container = entity_container
@@ -25,49 +26,58 @@ class Entity:
         y = self.y - self.y_size / 2
         return x, y
 
+
+class UpdateAble:
     def update(self, event_listener):
-        pass
+        ...
 
 
-class TransitionOwner:
-    def __init__(self):
+class TransitionalEntity(Entity):
+    def __init__(self, entity_container: EntityContainer = None):
+        Entity.__init__(self, entity_container)
         self.transition = None
 
     def begin_transition(self):
-        pass
+        ...
 
     def end_transition(self, timer_container: TimerContainer):
         self.entity_container.set_grid_xy_to_world_xy(self)
 
 
-class GridEntity(Entity, TransitionOwner):
+class Collider:
+    def __init__(self):
+        self.collided = False
+
+
+class Physical:
+    def __init__(self, impulse_x, impulse_y):
+        self.impulse_x = impulse_x
+        self.impulse_y = impulse_y
+        self.speed = 0
+        self.mass = 0
+
+
+class DestructableEntity(Entity):
+    def __init__(self):
+        Entity.__init__(self)
+
+    def destroy(self):
+        self.entity_container.remove_entity(self)
+
+
+class Tile(Entity):
     def __init__(self, entity_container: EntityContainer = None):
         Entity.__init__(self, entity_container)
-        TransitionOwner.__init__(self)
-
-    def update(self, event_listener, timer_container: TimerContainer):
-        if self.entity_container.entity_container.in_transition:
-            self.transition.transition(event_listener, timer_container)
-
-
-class Tile(GridEntity):
-    def __init__(self, entity_container: EntityContainer = None):
-        GridEntity.__init__(self, entity_container)
         self.image = pygame.Surface((50, 50))
         self.image.fill((255, 0, 0))
         self.x_size = 50
         self.y_size = 50
 
-    def update(self, event_listener, timer_container: TimerContainer):
-        pass
 
-    def begin_transition(self):
-        pass
-
-
-class Wall(GridEntity):
+class Wall(Collider, Entity):
     def __init__(self, entity_container: EntityContainer):
-        GridEntity.__init__(self, entity_container)
+        Collider.__init__(self)
+        Entity.__init__(self, entity_container)
 
         # TODO Nathan BEGIN
         # Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
@@ -103,10 +113,15 @@ class Wall(GridEntity):
     def begin_transition(self):
         pass
 
+class GridMover(UpdateAble, TransitionalEntity):
+    def __init__(self, entity_container: EntityContainer):
+        UpdateAble.__init__(self)
+        TransitionalEntity.__init__(self, entity_container)
 
-class Player(GridEntity):
+
+class Player(GridMover):
     def __init__(self, goal, score, entity_container: EntityContainer = None):
-        GridEntity.__init__(self, entity_container)
+        GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/sized_turtle.png")
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
@@ -115,8 +130,8 @@ class Player(GridEntity):
         self.transition = WobblyTransition(self)
 
         self.command_queue = []  # TODO Replace this by a Program instance in the future
-        self.score = score
-        self.goal = goal
+        self.score = score#TODO violation
+        self.goal = goal#TODO violation
         self.goal.player = self
 
     def update(self, event_listener, timer_container: TimerContainer):
@@ -159,9 +174,9 @@ class Player(GridEntity):
 
 # TODO Nathan BEGIN
 # Nathan: Deze functie kan verder uitgebreid worden
-class Enemy(GridEntity):
+class Enemy(GridMover):
     def __init__(self, player, entity_container: EntityContainer = None):
-        GridEntity.__init__(self, entity_container)
+        GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/minotaur.png")
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
@@ -230,18 +245,17 @@ class Enemy(GridEntity):
 # TODO Nathan END
 
 
-class Goal(GridEntity):
+class Goal(TransitionalEntity):
     def __init__(self, entity_container: EntityContainer = None):
-        GridEntity.__init__(self, entity_container)
+        GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/lettuce.png")
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
-        self.eaten = False
-        self.player = None
+        self.eaten = False#TODO violation
+        self.player = None#TODO violation
 
-    def update(self, event_listener, timer_container: TimerContainer):
-        pass
-        # print(self.eaten)
+    def begin_transition(self):
+        pass #TODO violation: this has to do something, otherwise it is a violation
 
     def end_transition(self, timer_container: TimerContainer):
         if self.eaten == True:
@@ -253,7 +267,7 @@ class Goal(GridEntity):
             self.eaten = False
         self.entity_container.set_grid_xy_to_world_xy(self)
 
-    def make_explosion(self, timer_container: TimerContainer):
+    def make_explosion(self, timer_container: TimerContainer):#TODO violation
         for i in range(20):
             angle = uniform(0, 2 * np.pi)
             magnitude = uniform(4, 6)
@@ -266,7 +280,7 @@ class Goal(GridEntity):
             )
             self.entity_container.entity_container.add_entity(particle)
 
-    def respawn(self):
+    def respawn(self):#TODO violation
         while True:
             grid_x = (
                 np.random.randint(0, self.entity_container.entity_container.size_x // 2) * 2
@@ -284,9 +298,9 @@ class Goal(GridEntity):
         self.entity_container.entity_container.move_grid_entity(self, grid_x, grid_y)
 
 
-class Score(GridEntity):
+class Score(Entity, UpdateAble):
     def __init__(self, entity_container: EntityContainer = None):
-        GridEntity.__init__(self, entity_container)
+        GridMover.__init__(self, entity_container)
         self.x = 10
         self.y = 10
         self.score = 0
@@ -300,16 +314,13 @@ class Score(GridEntity):
         self.image = score
 
 
-class PhysicalEntity(Entity):
+class PhysicalEntity(Collider, Entity, Physical, UpdateAble):
     def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
+        Collider.__init__(self)
         Entity.__init__(self, entity_container)
-        self.x = x
-        self.y = y
-        self.impulse_x = impulse_x
-        self.impulse_y = impulse_y
-        self.speed = 0
-        self.mass = 0
-        self.collided = False
+        Physical.__init__(self, impulse_x, impulse_y)
+        UpdateAble.__init__(self)
+
 
     def update(self, event_listener, timer_container: TimerContainer):
         pass
@@ -318,28 +329,10 @@ class PhysicalEntity(Entity):
         pass
 
 
-class Projectile(PhysicalEntity):
-    def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
-        PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
-        self.speed = 40
-        self.mass = 1
-
-    def update(self, event_listener, timer_container: TimerContainer):
-        if self.collided:
-            self.collision()
-            self.collided = False
-        self.impulse_x += self.speed * timer_container.time_passed
-
-    def destroy(self):
-        self.entity_container.remove_entity(self)
-
-    def collision(self):
-        self.destroy()
-
-
-class Particle(Projectile):
+class Particle(DestructableEntity, PhysicalEntity):
     def __init__(self, x, y, impulse_x, impulse_y, timer_container: TimerContainer, entity_container: EntityContainer = None):
-        Projectile.__init__(self, x, y, impulse_x, impulse_y, entity_container)
+        DestructableEntity.__init__(self)
+        PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
         self.speed = 0
         self.mass = 1
         self.image = pygame.image.load("../images/explosion.png")
@@ -356,9 +349,10 @@ class Particle(Projectile):
             self.destroy()
 
 
-class Rocket(Projectile):
+class Rocket(DestructableEntity, PhysicalEntity):
     def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
-        Projectile.__init__(self, x, y, impulse_x, impulse_y, entity_container)
+        DestructableEntity.__init__(self)
+        PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
         self.speed = 40
         self.mass = 1
         self.image = pygame.image.load("../images/pizza-box.png")
@@ -378,9 +372,6 @@ class Rocket(Projectile):
 
     def destroy(self):
         self.entity_container.remove_entity(self)
-
-    def collision(self):
-        self.destroy()
 
     def make_particles(self, timer_container: TimerContainer):
         for i in range(self.particle_count):
@@ -413,9 +404,6 @@ class RocketDuck(PhysicalEntity):
         self.turn_speed = 50
 
     def update(self, event_listener, timer_container: TimerContainer):
-        if self.collided:
-            self.collision()
-            self.collided = False
         self.angle += (
             self.turn_speed * np.random.uniform(-1, 1) * timer_container.time_passed
         )
@@ -425,9 +413,6 @@ class RocketDuck(PhysicalEntity):
             self.angle -= 2 * np.pi
         self.impulse_x += np.cos(self.angle) * self.speed * timer_container.time_passed
         self.impulse_y += np.sin(self.angle) * self.speed * timer_container.time_passed
-
-    def collision(self):
-        pass
 
 
 class EntityContainer:
@@ -566,14 +551,14 @@ class GridContainer:
         timer_container.append(self.transition_timer)
         self.in_transition = True
         for ent in self.entities:
-            if isinstance(ent, GridEntity):
+            if isinstance(ent, TransitionalEntity):
                 ent.begin_transition()
         return True
 
     def end_transition(self, timer_container: TimerContainer):
         self.in_transition = False
         for ent in self.entities:
-            if isinstance(ent, GridEntity):
+            if isinstance(ent, TransitionalEntity):
                 ent.end_transition(timer_container)
 
 
@@ -615,7 +600,8 @@ class Grid(EntityContainer, GridContainer):
 
         # Ask all entities to update their world coordinates and to do whatever they do
         for ent in self.entities:
-            ent.update(event_listener, timer_container)
+            if isinstance(ent, UpdateAble):
+                ent.update(event_listener, timer_container)
 
 
 class LevelBuilder:

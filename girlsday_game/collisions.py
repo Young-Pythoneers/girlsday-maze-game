@@ -4,15 +4,15 @@ import math
 import numpy as np
 
 from girlsday_game.entity import (
+    Collider,
     Goal,
+    Particle,
     PhysicalEntity,
     Player,
-    Projectile,
     Score,
     Tile,
     Wall,
 )
-from girlsday_game.music import Music
 
 
 class Collisions:
@@ -74,13 +74,7 @@ class Collisions:
         # For every pair of PhysicalEntities, check if they are in a collision
         # If so, they each give eachother a part of their impulse
         for ent1, ent2 in list(itertools.combinations(entities, 2)):
-            if (
-                not (isinstance(ent1, Projectile) and isinstance(ent2, Projectile))
-                and (not (isinstance(ent1, Tile) or isinstance(ent2, Tile)))
-                and (not (isinstance(ent1, Player) or isinstance(ent2, Player)))
-                and (not (isinstance(ent1, Goal) or isinstance(ent2, Goal)))
-                and (not (isinstance(ent1, Score) or isinstance(ent2, Score)))
-            ):
+            if ((isinstance(ent1, Collider) and isinstance(ent2, Collider)) and (not (isinstance(ent1, Particle) and isinstance(ent2, Particle)))):
                 collided = self.collision(ent1, ent2)
                 if collided:
                     if isinstance(ent1, PhysicalEntity):
