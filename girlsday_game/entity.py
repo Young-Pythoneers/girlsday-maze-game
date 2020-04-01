@@ -50,7 +50,9 @@ class Collider:
 
 
 class Physical:
-    def __init__(self, impulse_x, impulse_y):
+    def __init__(self, x, y, impulse_x, impulse_y):
+        self.x = x
+        self.y = y
         self.impulse_x = impulse_x
         self.impulse_y = impulse_y
         self.speed = 0
@@ -230,7 +232,6 @@ class Enemy(GridMover):
         # TODO uitleg: als de command_index uit de array loopt, wordt hij gereset naar 0 en begint dus van voren af aan
         if self.command_index >= len(self.command_queue):
             self.command_index = 0
-        # print(x_change, y_change)
 
         grid_destination_x = self.entity_container.grid_x + x_change
         grid_destination_y = self.entity_container.grid_y + y_change
@@ -318,8 +319,10 @@ class PhysicalEntity(Collider, Entity, Physical, UpdateAble):
     def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
         Collider.__init__(self)
         Entity.__init__(self, entity_container)
-        Physical.__init__(self, impulse_x, impulse_y)
+        Physical.__init__(self, x, y, impulse_x, impulse_y)
         UpdateAble.__init__(self)
+        self.x = x
+        self.y = y
 
 
     def update(self, event_listener, timer_container: TimerContainer):
@@ -533,16 +536,16 @@ class GridContainer:
         # TODO Nathan END
         # print(self.grid[grid_destination_y][grid_destination_x])
 
-        player_with_in_grid = (
+        player_within_grid = (
             0 <= grid_destination_x < self.size_x
             and 0 <= grid_destination_y < self.size_y
         )
-        player_wall_collsion = [
+        player_wall_collision = [
             (grid_destination_x + grid_source_x) / 2,
             (grid_destination_y + grid_source_y) / 2,
-        ] in self.all_walls
+        ] in self.all_walls#TODO this should be possible without a self.all_walls variable
 
-        return player_with_in_grid and not player_wall_collsion
+        return player_within_grid and not player_wall_collision
 
     def begin_transition(self, timer_container: TimerContainer):
         if len(self.player.command_queue) <= 0:
@@ -650,6 +653,7 @@ class LevelBuilder:
                 if single_letter == "w":
                     add_entity = True
                     ent = Wall(grid[i][j])
+                    self.grid_container.all_walls.append([j,i])
                 elif single_letter == "t":
                     add_entity = True
                     ent = Tile(grid[i][j])
