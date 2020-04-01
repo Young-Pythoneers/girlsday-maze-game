@@ -6,23 +6,34 @@ from pygame.sprite import Sprite
 class Key(Sprite):
     def __init__(self, xpos, ypos, id):
         Sprite.__init__(self)
-        self.image = pygame.image.load("../images/soldier.png").convert()
-        self.clicked = False
-        self.rect = self.image.get_rect()
-        self.rect.y = ypos
-        self.rect.x = xpos
-        self.clicked = False
-        self.id = id
-        self.linkReady = False
-        self.links = []
+
+        self.up = pygame.image.load("../images/buttons/up.png")
+        self.down = pygame.image.load("../images/buttons/down.png")
+        self.left = pygame.image.load("../images/buttons/left.png")
+        self.right = pygame.image.load("../images/buttons/right.png")
+        self.button_list = [[self.up, 10, 10, 0], [self.down, 50, 10, 1], [self.right, 90, 10, 2], [self.left, 130, 10, 3]]
+
+        for x in self.button_list:
+            self.image= x[0]
+            self.clicked = False
+            self.rect = self.image.get_rect()
+            self.rect.y = x[1]
+            self.rect.x = x[2]
+            self.clicked = False
+            self.id = x[3]
+
 
 
 pygame.init()
+
 Black = (0,0,0)
+
 size = (800,600)
+
 screen = pygame.display.set_mode(size)
 
 done = False
+
 clock = pygame.time.Clock()
 
 key_list = pygame.sprite.Group()
@@ -35,7 +46,6 @@ while not done:
             pos = pygame.mouse.get_pos()
             x = pos[0]
             y = pos[1]
-            print(event.button)
             if event.button == 3:
                 key_list.add(Key(x, y,len(key_list)+1))
             elif event.button == 1:
