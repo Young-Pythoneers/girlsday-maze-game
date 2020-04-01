@@ -504,54 +504,11 @@ class GridContainer:
         self.input_timer = Timer(0)
         timer_container.append(self.input_timer)  # can be removed in future
 
-        level = self.load_level()
-        self.create_grid(level)
+        file_name = None
+        self.level_builder = LevelBuilder(self)
+        self.level_builder.load_level(file_name)
+        self.grid = self.level_builder.build_grid()
 
-    def load_level(self):
-        level = np.array(
-            [
-                "wwwwwwwwwwwwwww",
-                "wtntntntntntntw",
-                "wnwwwwwnwwwwwnw",
-                "wtwtntntwtntwtw",
-                "wnwnwwwwwwwnwnw",
-                "wtntwtntntntwtw",
-                "wnnnwwwwwnnnwnw",
-                "wtntntntntntntw",
-                "wwwwwwwwwwwwwww",
-            ]
-        )
-        return level
-
-    def create_grid(self, level):
-        self.size_x = len(level[0])
-        self.size_y = len(level)
-
-        # Create the grid
-        self.grid = []
-        for i in range(self.size_y):
-            grid_row = []
-            for j in range(self.size_x):
-                gridPoint = GridPoint(
-                    j, i, self.zero_x, self.zero_y, self.tile_size, self.wall_size, self
-                )
-                grid_row.append(gridPoint)
-            self.grid.append(grid_row)
-
-        self.all_walls = []
-
-        # Fill the grid with Tiles and Walls
-        for i in range(len(level)):
-            for j in range(len(level[i])):
-                single_letter = level[i][j]
-
-                if single_letter == "w":
-                    self.add_grid_entity(Wall(self.grid[i][j]), j, i)
-                    self.all_walls.append([j, i])
-                elif single_letter == "t":
-                    self.add_grid_entity(Tile(self.grid[i][j]), j, i)
-                elif single_letter == "n":
-                    pass
 
     def add_grid_entity(self, ent, grid_x, grid_y):
         if isinstance(ent, Player):
@@ -659,3 +616,62 @@ class Grid(EntityContainer, GridContainer):
         # Ask all entities to update their world coordinates and to do whatever they do
         for ent in self.entities:
             ent.update(event_listener, timer_container)
+
+
+class LevelBuilder:
+    def __init__(self, grid_container: GridContainer):
+        self.grid_container = grid_container
+
+
+    def load_level(self, file_name: str):
+        self.level = np.array(
+            [
+                "wwwwwwwwwwwwwww",
+                "wtntntntntntntw",
+                "wnwwwwwnwwwwwnw",
+                "wtwtntntwtntwtw",
+                "wnwnwwwwwwwnwnw",
+                "wtntwtntntntwtw",
+                "wnnnwwwwwnnnwnw",
+                "wtntntntntntntw",
+                "wwwwwwwwwwwwwww",
+            ]
+        )
+
+
+    def build_grid(self):
+        self.grid_container.size_x = len(self.level[0])
+        self.grid_container.size_y = len(self.level)
+
+        # Create the grid
+        grid = []
+        for i in range(self.grid_container.size_y):
+            grid_row = []
+            for j in range(self.grid_container.size_x):
+                gridPoint = GridPoint(
+                    j, i, self.grid_container.zero_x, self.grid_container.zero_y, self.grid_container.tile_size, self.grid_container.wall_size, self.grid_container
+                )
+                grid_row.append(gridPoint)
+            grid.append(grid_row)
+
+        self.grid_container.all_walls = []
+
+        # Fill the grid with Tiles and Walls
+        for i in range(len(self.level)):
+            for j in range(len(self.level[i])):
+                single_letter = self.level[i][j]
+                add_entity = False
+                if single_letter == "w":
+                    add_entity = True
+                    ent = Wall(grid[i][j])
+                elif single_letter == "t":
+                    add_entity = True
+                    ent = Tile(grid[i][j])
+                elif single_letter == "n":
+                    pass
+
+                if add_entity:
+                    self.grid_container.entities.append(ent)
+                    grid[i][j].add_entity(ent)
+                    grid[i][j].set_grid_xy_to_world_xy(ent)
+        return grid
