@@ -1,9 +1,11 @@
 import pygame
 import random
 
-class Key(pygame.sprite.Sprite):
-    def __intit__(self, xpos, ypos, id):
-        #super(Key, self).__init__()
+from pygame.sprite import Sprite
+
+class Key(Sprite):
+    def __init__(self, xpos, ypos, id):
+        Sprite.__init__(self)
         self.image = pygame.image.load("../images/soldier.png").convert()
         self.clicked = False
         self.rect = self.image.get_rect()
@@ -33,6 +35,7 @@ while not done:
             pos = pygame.mouse.get_pos()
             x = pos[0]
             y = pos[1]
+            print(event.button)
             if event.button == 3:
                 key_list.add(Key(x, y,len(key_list)+1))
             elif event.button == 1:
