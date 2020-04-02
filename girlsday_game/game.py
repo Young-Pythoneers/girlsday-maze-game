@@ -25,7 +25,7 @@ class Game:
 
         score = Score()
         self.grid.add_grid_entity(score, 1, 1)
-        player = Player(goal, score)
+        player = Player()
         self.grid.add_grid_entity(player, 1, 1)
         enemy = Enemy(player)
         self.grid.add_grid_entity(enemy, 7, 5)
@@ -38,7 +38,7 @@ class Game:
             self.physics.apply_physics(
                 self.grid.entities, self.event_listener, self.timer_container
             )
-            self.grid.update_entities(self.event_listener, self.timer_container)
+            self.grid.update_entities(self.event_listener)
             self.display.draw_screen(self.grid.entities)
             self.timer_container.update_timers()
 

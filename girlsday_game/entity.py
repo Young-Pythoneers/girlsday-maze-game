@@ -33,7 +33,7 @@ class Commandable:
 
 
 class Updateable:
-    def update(self, event_listener, timer_container):
+    def update(self, event_listener):
         ...
 
 
@@ -44,7 +44,7 @@ class Transitional:
     def begin_transition(self):
         ...
 
-    def end_transition(self, timer_container: TimerContainer):
+    def end_transition(self):
         self.entity_container.set_grid_xy_to_world_xy(self)
 
 
@@ -129,7 +129,7 @@ class Wall(Collider, Entity):
         self.x_size = width
         self.y_size = depth
 
-    def update(self, event_listener, timer_container: TimerContainer):
+    def update(self, event_listener):
         pass
 
 class GridMover(Commandable, Entity, Transitional, Updateable):
@@ -141,7 +141,7 @@ class GridMover(Commandable, Entity, Transitional, Updateable):
 
 
 class Player(Collider, GridMover):
-    def __init__(self, goal, score, entity_container: EntityContainer = None):
+    def __init__(self, entity_container: EntityContainer = None):
         Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/sized_turtle.png")
@@ -150,26 +150,33 @@ class Player(Collider, GridMover):
 
         # variables to track the transition
         self.transition = WobblyTransition(self)
-        self.score = score#TODO LSP violation
-        self.goal = goal#TODO LSP violation
-        self.goal.player = self
+        #self.score = score#TODO LSP violation
+        #self.goal = goal#TODO LSP violation
+        #self.goal.player = self
 
-    def update(self, event_listener, timer_container: TimerContainer):
+    def update(self, event_listener):
         if self.entity_container.entity_container.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition.transition(event_listener, timer_container)
+            self.transition.transition(event_listener, self.entity_container.entity_container.timer_container)
             # Calculate the distance to the goal
-            distance_to_goal = math.sqrt(
-                math.pow(
-                    (self.entity_container.grid_x - self.goal.entity_container.grid_x), 2
-                )
-                + math.pow(
-                    (self.entity_container.grid_y - self.goal.entity_container.grid_y), 2
-                )
-            )
-            if distance_to_goal <= 0.7:
+            #distance_to_goal = math.sqrt(
+            #    math.pow(
+            #        (self.entity_container.grid_x - self.goal.entity_container.grid_x), 2
+            #    )
+            #    + math.pow(
+            #        (self.entity_container.grid_y - self.goal.entity_container.grid_y), 2
+            #    )
+            #)
+            #if distance_to_goal <= 0.7:
                 # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
-                self.goal.eaten = True
+                #self.goal.eaten = True
+
+    def update_collisions(self):
+        for col in self._collisions:
+            if isinstance(col, Enemy):
+                Music.sound_handler("../sounds/wilhelm_scream.wav", 0)
+        self._impulse_list = []
+        self._collisions = []
 
     def begin_transition(self):
         # Read a command
@@ -193,7 +200,7 @@ class Player(Collider, GridMover):
 
 
 class Enemy(Collider, GridMover):
-    def __init__(self, player, entity_container: EntityContainer = None):
+    def __init__(self, entity_container: EntityContainer = None):
         Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/minotaur.png")
@@ -202,7 +209,6 @@ class Enemy(Collider, GridMover):
 
         # variables to track the transition
         self.transition = CosTransition(self)
-        self.player = player#TODO LSP violation
 
         self.command_queue = [
             [-2, 0],
@@ -227,10 +233,10 @@ class Enemy(Collider, GridMover):
         # grid_destination_x = self.entity_container.grid_x + x_change
         # grid_destination_y = self.entity_container.grid_y + y_change
 
-    def update(self, event_listener, timer_container: TimerContainer):
+    def update(self, event_listener):
         if self.entity_container.entity_container.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition.transition(event_listener, timer_container)
+            self.transition.transition(event_listener, self.entity_container.entity_container.timer_container)
 
     # def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
 
@@ -252,10 +258,6 @@ class Enemy(Collider, GridMover):
         # Define where the transition should stop, shit will also check if the move is possible
         self.transition.define_transition(grid_destination_x, grid_destination_y)
 
-        if self.entity_container.grid_x == self.player.entity_container.grid_x:
-            # then we have a collision between player and enemy
-            pass
-
 
 class Goal(Collider, GridMover):
     def __init__(self, entity_container: EntityContainer = None):
@@ -264,23 +266,27 @@ class Goal(Collider, GridMover):
         self.image = pygame.image.load("../images/lettuce.png")
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
-        self.eaten = False#TODO LSP violation
-        self.player = None#TODO LSP violation
+        self._does_not_collide_with = [Wall]
 
     def begin_transition(self):
         pass #TODO LSP violation: this has to do something, otherwise it is a violation
 
-    def end_transition(self, timer_container: TimerContainer):
-        if self.eaten == True:
-            self.player.score.score += 1
-            self.player.score.score += 1
-            Music.sound_handler("../sounds/munch.wav", 0)
-            self.__make_explosion(timer_container)
-            self.__respawn()
-            self.eaten = False
-        self.entity_container.set_grid_xy_to_world_xy(self)
+    def update_collisions(self):
+        for coll in self._collisions:
+            if isinstance(coll, Player) or isinstance(coll, Enemy):
+                if isinstance(coll, Player):
+                    self.entity_container.entity_container.score.score += 1
+                else:#if isinstance(coll, Enemy)
+                    self.entity_container.entity_container.score.score -= 100
+                    Music.sound_handler("../sounds/evil_laugh.wav", 0)
+                Music.sound_handler("../sounds/munch.wav", 0)
+                self.__make_explosion()
+                self.__respawn()
+                self.entity_container.set_grid_xy_to_world_xy(self)
+        self._impulse_list = []
+        self._collisions = []
 
-    def __make_explosion(self, timer_container: TimerContainer):#TODO LSP violation resolved?
+    def __make_explosion(self):#TODO LSP violation resolved?
         for i in range(20):
             angle = uniform(0, 2 * np.pi)
             magnitude = uniform(4, 6)
@@ -289,7 +295,7 @@ class Goal(Collider, GridMover):
                 self.y,
                 np.cos(angle) * magnitude,
                 np.sin(angle) * magnitude,
-                timer_container,
+                self.entity_container.entity_container,
             )
             self.entity_container.entity_container.add_entity(particle)
 
@@ -322,7 +328,7 @@ class Score(Entity, Updateable):
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
 
-    def update(self, event_listener, timer_container: TimerContainer):
+    def update(self, event_listener):
         score = self.font.render("Score : " + str(self.score), True, (0, 0, 0))
         self.image = score
 
@@ -337,12 +343,12 @@ class PhysicalEntity(Collider, Entity, Physical, Updateable):
         self.y = y
 
 
-    def update(self, event_listener, timer_container: TimerContainer):
+    def update(self, event_listener):
         pass
 
 
 class Particle(Destructable, PhysicalEntity):
-    def __init__(self, x, y, impulse_x, impulse_y, timer_container: TimerContainer, entity_container: EntityContainer = None):
+    def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
         Destructable.__init__(self)
         PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
         self.speed = 0
@@ -351,11 +357,11 @@ class Particle(Destructable, PhysicalEntity):
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
         self.timer = Timer(1 + uniform(-0.2, 0.2))
-        timer_container.append(self.timer)
-        self._does_not_collide_with = [Particle, Player]
+        self.entity_container.timer_container.append(self.timer)
+        self._does_not_collide_with = [Enemy, Particle, Player]
 
-    def update(self, event_listener, timer_container: TimerContainer):
-        self.impulse_x += self.speed * timer_container.time_passed
+    def update(self, event_listener):
+        self.impulse_x += self.speed * self.entity_container.timer_container.time_passed
         if self.timer.check_timer():
             self.destroy()
 
@@ -439,7 +445,7 @@ class EntityContainer:
         ent.entity_container = None
         self.entities.remove(ent)
 
-    def update_entities(self, event_listener, timer_container: TimerContainer):
+    def update_entities(self, event_listener):
         for ent in self.entities:
             ent.update(event_listener)
 
@@ -493,13 +499,15 @@ class GridContainer:
         self.wall_size = 50
         self.transition_cooldown = 0.3
         self.transition_timer = Timer(0)
-        timer_container.append(self.transition_timer)
+        self.timer_container = timer_container
+        self.timer_container.append(self.transition_timer)
         self.in_transition = False  # Are we in a transition state?
         self.play = False  # Do we play all commands in the player's queue?
         self.player = None  # can be removed in future
+        self.score = None
         self.input_cooldown = 0.1  # can be removed in future
         self.input_timer = Timer(0)
-        timer_container.append(self.input_timer)  # can be removed in future
+        self.timer_container.append(self.input_timer)  # can be removed in future
 
         file_name = None
         self.level_builder = LevelBuilder(self)
@@ -510,6 +518,8 @@ class GridContainer:
     def add_grid_entity(self, ent, grid_x, grid_y):
         if isinstance(ent, Player):
             self.player = ent
+        if isinstance(ent, Score):
+            self.score = ent
         self.entities.append(ent)
         self.grid[grid_y][grid_x].add_entity(ent)
         self.grid[grid_y][grid_x].set_grid_xy_to_world_xy(ent)
@@ -556,22 +566,22 @@ class GridContainer:
 
         return player_within_grid and not player_wall_collision
 
-    def begin_transition(self, timer_container: TimerContainer):
+    def begin_transition(self):
         if len(self.player.command_queue) <= 0:
             return False
         self.transition_timer = Timer(self.transition_cooldown)
-        timer_container.append(self.transition_timer)
+        self.timer_container.append(self.transition_timer)
         self.in_transition = True
         for ent in self.entities:
             if isinstance(ent, Transitional):
                 ent.begin_transition()
         return True
 
-    def end_transition(self, timer_container: TimerContainer):
+    def end_transition(self):
         self.in_transition = False
         for ent in self.entities:
             if isinstance(ent, Transitional):
-                ent.end_transition(timer_container)
+                ent.end_transition()
 
 
 class Grid(EntityContainer, GridContainer):
@@ -579,7 +589,7 @@ class Grid(EntityContainer, GridContainer):
         EntityContainer.__init__(self)
         GridContainer.__init__(self, timer_container)
 
-    def update_entities(self, event_listener, timer_container: TimerContainer):
+    def update_entities(self, event_listener):
         # Check the event_listener to see if there is keyboard input
         if (
             self.input_timer.check_timer()
@@ -596,7 +606,7 @@ class Grid(EntityContainer, GridContainer):
             self.player.command_queue.append((x_change, y_change))
             # Set the input_cooldown_timer to better separate individual key presses
             self.input_timer = Timer(self.input_cooldown)
-            timer_container.append(self.input_timer)
+            self.timer_container.append(self.input_timer)
 
         # Check if we did not allready start a transition and we are in play mode.
         # If the space bar is pressed when not in a transition, we want to start the play mode.
@@ -604,16 +614,16 @@ class Grid(EntityContainer, GridContainer):
         # A currently running transition should first finish
         if not self.in_transition and (event_listener.K_SPACE or self.play):
             # Set behaviour to play mode. The player can end the play mode once its commands queue is empty
-            self.play = self.begin_transition(timer_container)
+            self.play = self.begin_transition()
 
         # If we are in a transition manage its timer and check if the transition should be stopped
         if self.transition_timer.check_timer() and self.in_transition:
-            self.end_transition(timer_container)
+            self.end_transition()
 
         # Ask all entities to update their world coordinates and to do whatever they do
         for ent in self.entities:
             if isinstance(ent, Updateable):
-                ent.update(event_listener, timer_container)
+                ent.update(event_listener)
 
 
 class LevelBuilder:
