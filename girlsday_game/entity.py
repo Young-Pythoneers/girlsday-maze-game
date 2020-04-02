@@ -8,7 +8,7 @@ from numpy.random import uniform
 
 from girlsday_game.music import Music
 from girlsday_game.timer import Timer, TimerContainer
-from girlsday_game.transition import CosTransition, WobblyTransition
+from girlsday_game.transition import CosTransition, WobblyTransition, InstantTransition
 from girlsday_game.timer import Timer, TimerContainer
 
 
@@ -150,9 +150,6 @@ class Player(Collider, GridMover):
 
         # variables to track the transition
         self.transition = WobblyTransition(self)
-        #self.score = score#TODO LSP violation
-        #self.goal = goal#TODO LSP violation
-        #self.goal.player = self
 
     def update(self, event_listener):
         if self.entity_container.entity_container.in_transition:
@@ -175,6 +172,13 @@ class Player(Collider, GridMover):
         for col in self._collisions:
             if isinstance(col, Enemy):
                 Music.sound_handler("../sounds/wilhelm_scream.wav", 0)
+                dead_player = DeadPlayer()
+                self.entity_container.entity_container.add_entity(dead_player)
+                dead_player.x = self.x
+                dead_player.y = self.y
+                self.entity_container.entity_container.move_grid_entity(self, 1, 1)
+                self.entity_container.set_grid_xy_to_world_xy(self)
+                self.transition.define_transition(1,1)
         self._impulse_list = []
         self._collisions = []
 
@@ -198,6 +202,13 @@ class Player(Collider, GridMover):
         # Define where the transition should stop, shit will also check if the move is possible
         self.transition.define_transition(grid_destination_x, grid_destination_y)
 
+
+class DeadPlayer(Entity):
+    def __init__(self, entity_container: EntityContainer = None):
+        GridMover.__init__(self, entity_container)
+        self.image = pygame.image.load("../images/skull.png")
+        self.x_size = self.image.get_size()[1]
+        self.y_size = self.image.get_size()[0]
 
 class Enemy(Collider, GridMover):
     def __init__(self, entity_container: EntityContainer = None):
