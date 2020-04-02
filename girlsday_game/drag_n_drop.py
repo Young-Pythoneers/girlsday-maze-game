@@ -4,24 +4,15 @@ import random
 from pygame.sprite import Sprite
 
 class Key(Sprite):
-    def __init__(self, xpos, ypos, id):
+    def __init__(self, image, y, x, id):
         Sprite.__init__(self)
-
-        self.up = pygame.image.load("../images/buttons/up.png")
-        self.down = pygame.image.load("../images/buttons/down.png")
-        self.left = pygame.image.load("../images/buttons/left.png")
-        self.right = pygame.image.load("../images/buttons/right.png")
-        self.button_list = [[self.up, 10, 10, 0], [self.down, 50, 10, 1], [self.right, 90, 10, 2], [self.left, 130, 10, 3]]
-
-        for x in self.button_list:
-            self.image= x[0]
-            self.clicked = False
-            self.rect = self.image.get_rect()
-            self.rect.y = x[1]
-            self.rect.x = x[2]
-            self.clicked = False
-            self.id = x[3]
-
+        self.image=image
+        self.clicked = False
+        self.rect = self.image.get_rect()
+        self.rect.y = y
+        self.rect.x = x
+        self.clicked = False
+        self.id = id
 
 
 pygame.init()
@@ -38,6 +29,12 @@ clock = pygame.time.Clock()
 
 key_list = pygame.sprite.Group()
 
+up = pygame.image.load("../images/buttons/up.png")
+down = pygame.image.load("../images/buttons/down.png")
+left = pygame.image.load("../images/buttons/left.png")
+right = pygame.image.load("../images/buttons/right.png")
+button_list = [[up, 100, 10, 0], [down, 200, 10, 1], [right, 300, 10, 2], [left, 400, 10, 3]]
+
 while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -47,7 +44,8 @@ while not done:
             x = pos[0]
             y = pos[1]
             if event.button == 3:
-                key_list.add(Key(x, y,len(key_list)+1))
+                for x in button_list:
+                    key_list.add(Key(x[0], x[1], x[2], x[3]))
             elif event.button == 1:
                 for key in key_list:
                     if key.rect.collidepoint(pos):
