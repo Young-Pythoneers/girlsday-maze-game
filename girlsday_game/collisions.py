@@ -5,13 +5,8 @@ import numpy as np
 
 from girlsday_game.entity import (
     Collider,
-    Goal,
     Particle,
     PhysicalEntity,
-    Player,
-    Score,
-    Tile,
-    Wall,
 )
 
 

@@ -2,16 +2,15 @@ from girlsday_game.entity import (
     Enemy,
     Entity,
     Goal,
-    GridEntity,
+    GridMover,
     Particle,
     PhysicalEntity,
     Player,
-    Projectile,
     Rocket,
     RocketDuck,
     Score,
     Tile,
-    TransitionOwner,
+    Transitional,
     Wall,
 )
 from girlsday_game.entity import EntityContainer, Grid, GridPoint
@@ -25,13 +24,13 @@ def test_entity():
     assert True
 
 
-def test_transition_owner():
-    TransitionOwner()
+def test_transitional():
+    Transitional()
     assert True
 
 
-def test_grid_entity():
-    GridEntity()
+def test_grid_mover():
+    GridMover(EntityContainer())
     assert True
 
 
@@ -70,11 +69,6 @@ def test_score():
 
 def test_physical_entity():
     PhysicalEntity(0, 0, 0, 0)
-    assert True
-
-
-def test_projectile():
-    Projectile(0, 0, 0, 0)
     assert True
 
 

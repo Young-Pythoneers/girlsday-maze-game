@@ -1,7 +1,5 @@
 from typing import List
 
-import numpy as np
-
 from girlsday_game.entity import Entity, PhysicalEntity
 from girlsday_game.listener import EventListener
 from girlsday_game.timer import TimerContainer
