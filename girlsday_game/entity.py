@@ -27,6 +27,11 @@ class Entity:
         return x, y
 
 
+class Commandable:
+    def __init__(self):
+        self.command_queue = []# TODO Replace this by a Program instance in the future
+
+
 class Updateable:
     def update(self, event_listener, timer_container):
         ...
@@ -45,7 +50,30 @@ class Transitional:
 
 class Collider:
     def __init__(self):
-        self.collided = False
+        self._collisions = []
+        self._impulse_list = []
+        self._does_not_collide_with = []
+
+    def register_collision(self, collider):
+        if not any([isinstance(collider, ent) for ent in self._does_not_collide_with]):
+            self._collisions.append(collider)
+            if isinstance(self, Physical):
+                if isinstance(collider, Physical):
+                    impulse_x_dif = self.impulse_x - collider.impulse_x
+                    impulse_y_dif = self.impulse_y - collider.impulse_y
+                else:
+                    impulse_x_dif = 2 * self.impulse_x
+                    impulse_y_dif = 2 * self.impulse_y
+                self._impulse_list.append((impulse_x_dif, impulse_y_dif))
+
+    def update_collisions(self):
+        if isinstance(self, Physical):
+            for impulse in self._impulse_list:
+                self.impulse_x -= impulse[0]
+                self.impulse_y -= impulse[1]
+        self._impulse_list = []
+        self._collisions = []
+
 
 
 class Physical:
@@ -76,10 +104,8 @@ class Wall(Collider, Entity):
     def __init__(self, entity_container: EntityContainer):
         Collider.__init__(self)
         Entity.__init__(self, entity_container)
+        self._does_not_collide_with = [Wall]
 
-        # TODO Nathan BEGIN
-        # Kijk of je hier meer opties toe kunt voegen en i.p.v. een Surface een Polygon kunt gebruiken
-        # Je zou een class van WallShape kunnen maken, maar het lijkt met niet absoluut nodig
         if self.entity_container.grid_y % 2 == 0:
             if self.entity_container.grid_x % 2 == 1:
                 # Nathan: Horizontaal
@@ -103,23 +129,20 @@ class Wall(Collider, Entity):
         self.x_size = width
         self.y_size = depth
 
-        # TODO Nathan END
-
     def update(self, event_listener, timer_container: TimerContainer):
         pass
 
-    def begin_transition(self):
-        pass
-
-class GridMover(Entity, Transitional, Updateable):
+class GridMover(Commandable, Entity, Transitional, Updateable):
     def __init__(self, entity_container: EntityContainer):
+        Commandable.__init__(self)
         Entity.__init__(self, entity_container)
         Transitional.__init__(self)
         Updateable.__init__(self)
 
 
-class Player(GridMover):
+class Player(Collider, GridMover):
     def __init__(self, goal, score, entity_container: EntityContainer = None):
+        Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/sized_turtle.png")
         self.x_size = self.image.get_size()[1]
@@ -127,8 +150,6 @@ class Player(GridMover):
 
         # variables to track the transition
         self.transition = WobblyTransition(self)
-        #TODO LSP violation: not all superclasses have a command_queue
-        self.command_queue = []  # TODO Replace this by a Program instance in the future
         self.score = score#TODO LSP violation
         self.goal = goal#TODO LSP violation
         self.goal.player = self
@@ -171,10 +192,9 @@ class Player(GridMover):
         self.transition.define_transition(grid_destination_x, grid_destination_y)
 
 
-# TODO Nathan BEGIN
-# Nathan: Deze functie kan verder uitgebreid worden
-class Enemy(GridMover):
+class Enemy(Collider, GridMover):
     def __init__(self, player, entity_container: EntityContainer = None):
+        Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/minotaur.png")
         self.x_size = self.image.get_size()[1]
@@ -182,7 +202,7 @@ class Enemy(GridMover):
 
         # variables to track the transition
         self.transition = CosTransition(self)
-        self.player = player
+        self.player = player#TODO LSP violation
 
         self.command_queue = [
             [-2, 0],
@@ -221,12 +241,9 @@ class Enemy(GridMover):
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
 
-        # TODO uitleg: gebruik de huidige command_index om het commando op te halen
         x_change = self.command_queue[self.command_index][0]
         y_change = self.command_queue[self.command_index][1]
-        # TODO uitleg: voor de volgende transitie, incrementeer de commando_index
         self.command_index += 1
-        # TODO uitleg: als de command_index uit de array loopt, wordt hij gereset naar 0 en begint dus van voren af aan
         if self.command_index >= len(self.command_queue):
             self.command_index = 0
 
@@ -240,11 +257,9 @@ class Enemy(GridMover):
             pass
 
 
-# TODO Nathan END
-
-
-class Goal(GridMover):
+class Goal(Collider, GridMover):
     def __init__(self, entity_container: EntityContainer = None):
+        Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/lettuce.png")
         self.x_size = self.image.get_size()[1]
@@ -325,9 +340,6 @@ class PhysicalEntity(Collider, Entity, Physical, Updateable):
     def update(self, event_listener, timer_container: TimerContainer):
         pass
 
-    def collision(self):
-        pass
-
 
 class Particle(Destructable, PhysicalEntity):
     def __init__(self, x, y, impulse_x, impulse_y, timer_container: TimerContainer, entity_container: EntityContainer = None):
@@ -340,10 +352,9 @@ class Particle(Destructable, PhysicalEntity):
         self.y_size = self.image.get_size()[0]
         self.timer = Timer(1 + uniform(-0.2, 0.2))
         timer_container.append(self.timer)
+        self._does_not_collide_with = [Particle, Player]
 
     def update(self, event_listener, timer_container: TimerContainer):
-        if self.collided:
-            self.collided = False
         self.impulse_x += self.speed * timer_container.time_passed
         if self.timer.check_timer():
             self.destroy()
@@ -364,10 +375,11 @@ class Rocket(Destructable, PhysicalEntity):
         self.impulse_multiplier = 0.1
 
     def update(self, event_listener, timer_container: TimerContainer):
-        if self.collided:
-            self.make_particles(timer_container)
-            self.destroy()
-            self.collided = False
+        #self.update_collisions()#TODO handle this according to commented code
+        #if self.collided:
+        #    self.make_particles(timer_container)
+        #    self.destroy()
+        #    self.collided = False
         self.impulse_x += self.speed * timer_container.time_passed
 
     def destroy(self):

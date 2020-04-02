@@ -43,7 +43,6 @@ class Physics:
                 )
                 if (
                     ent.y <= self.game.display.screen_size_y - ent.y_size
-                    and not ent.collided
                 ):  # This if statement fixes weird behaviour at the screen's bottom.
                     # Apply gravity
                     ent.impulse_y += self.gravity * ent.mass * timer_keeper.time_passed

@@ -60,37 +60,19 @@ class Collisions:
             if isinstance(ent, PhysicalEntity):
                 if ent.x < 0 or ent.x > self.game.display.screen_size_x - ent.x_size:
                     ent.impulse_x = -ent.impulse_x
-                    ent.collided = True
                 if ent.y < 0 or ent.y > self.game.display.screen_size_y - ent.y_size:
                     ent.impulse_y = -ent.impulse_y
-                    ent.collided = True
                 ent.x = np.clip(ent.x, 0, self.game.display.screen_size_x - ent.x_size)
                 ent.y = np.clip(ent.y, 0, self.game.display.screen_size_y - ent.y_size)
         # For every pair of PhysicalEntities, check if they are in a collision
         # If so, they each give eachother a part of their impulse
         for ent1, ent2 in list(itertools.combinations(entities, 2)):
-            if ((isinstance(ent1, Collider) and isinstance(ent2, Collider)) and (not (isinstance(ent1, Particle) and isinstance(ent2, Particle)))):
+            if isinstance(ent1, Collider) and isinstance(ent2, Collider):
                 collided = self.collision(ent1, ent2)
                 if collided:
-                    if isinstance(ent1, PhysicalEntity):
-                        x1 = ent1.impulse_x
-                        y1 = ent1.impulse_y
-                    else:
-                        x1 = 0
-                        y1 = 0
-                    if isinstance(ent2, PhysicalEntity):
-                        x2 = ent2.impulse_x
-                        y2 = ent2.impulse_y
-                    else:
-                        x2 = 0
-                        y2 = 0
-                    impulse_x_dif = x1 - x2
-                    impulse_y_dif = y1 - y2
-                    if isinstance(ent1, PhysicalEntity):
-                        ent1.impulse_x = -impulse_x_dif
-                        ent1.impulse_y = -impulse_y_dif
-                        ent1.collided = True
-                    if isinstance(ent2, PhysicalEntity):
-                        ent2.impulse_x = impulse_x_dif
-                        ent2.impulse_y = impulse_y_dif
-                        ent2.collided = True
+                    ent1.register_collision(ent2)
+                    ent2.register_collision(ent1)
+
+        for ent in entities:
+            if isinstance(ent, Collider):
+                ent.update_collisions()
