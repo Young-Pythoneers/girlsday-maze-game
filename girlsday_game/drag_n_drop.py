@@ -34,6 +34,10 @@ down = pygame.image.load("../images/buttons/down.png")
 left = pygame.image.load("../images/buttons/left.png")
 right = pygame.image.load("../images/buttons/right.png")
 button_list = [[up, 100, 10, 0], [down, 200, 10, 1], [right, 300, 10, 2], [left, 400, 10, 3]]
+for x in button_list:
+    key_list.add(Key(x[0], x[1], x[2], x[3]))
+
+print(key_list)
 
 while not done:
     for event in pygame.event.get():
@@ -44,11 +48,13 @@ while not done:
             x = pos[0]
             y = pos[1]
             if event.button == 3:
-                for x in button_list:
-                    key_list.add(Key(x[0], x[1], x[2], x[3]))
+                pass
             elif event.button == 1:
                 for key in key_list:
                     if key.rect.collidepoint(pos):
+                        for x in button_list:
+                            if key.rect[1] == x[1]:
+                                key_list.add(Key(x[0], x[1], x[2], x[3]))
                         key.clicked = True
 
         if event.type == pygame.MOUSEBUTTONUP:
