@@ -6,6 +6,8 @@ import numpy as np
 import pygame
 from numpy.random import uniform
 
+from girlsday_game.command import CommandFactory, Program, MoveLeftCommand, MoveRightCommand, MoveUpCommand, \
+    MoveDownCommand
 from girlsday_game.music import Music
 from girlsday_game.timer import Timer, TimerContainer
 from girlsday_game.transition import CosTransition, WobblyTransition, InstantTransition
@@ -29,7 +31,7 @@ class Entity:
 
 class Commandable:
     def __init__(self):
-        self.command_queue = []# TODO Replace this by a Program instance in the future
+        self.program = Program()
 
 
 class Updateable:
@@ -184,23 +186,11 @@ class Player(Collider, GridMover):
 
     def begin_transition(self):
         # Read a command
-        if len(self.command_queue) > 0:
-            # If there is a command on the queue, pop it and do it
-            command = self.command_queue.pop(0)
-            x_change = command[0]
-            y_change = command[1]
-            if len(self.command_queue) <= 0:
+        if self.program.command_pointer < len(self.program.children):
+            self.program.do_command(self)
+            if self.program.command_pointer >= len(self.program.children):
                 # If there is no command on the queue tell the grid that it should not play transitions after this one
                 self.entity_container.entity_container.play = False
-        else:
-            x_change = 0
-            y_change = 0
-            self.entity_container.entity_container.play = False
-        # calculate the destination of the transition in grid coordinates
-        grid_destination_x = self.entity_container.grid_x + x_change
-        grid_destination_y = self.entity_container.grid_y + y_change
-        # Define where the transition should stop, shit will also check if the move is possible
-        self.transition.define_transition(grid_destination_x, grid_destination_y)
 
 
 class DeadPlayer(Entity):
@@ -221,28 +211,8 @@ class Enemy(Collider, GridMover):
         # variables to track the transition
         self.transition = CosTransition(self)
 
-        self.command_queue = [
-            [-2, 0],
-            [2, 0],
-            [2, 0],
-            [2, 0],
-            [0, 2],
-            [2, 0],
-            [-2, 0],
-            [0, -2],
-            [-2, 0],
-            [-2, 0],
-        ]  # TODO Replace this by a Program instance in the future
-
-        self.command_index = 0  # TODO uitleg: Ik heb dit toegevoegd om bij te houden welk commando er uitevoerd moet worden
-
-        # if len(self.command_queue) > 0:
-        #     # If there is a command on the queue, pop it and do it
-        #     command = self.command_queue.pop(0)
-        #     x_change = command[0]
-        #     y_change = command[1]
-        # grid_destination_x = self.entity_container.grid_x + x_change
-        # grid_destination_y = self.entity_container.grid_y + y_change
+        command_factory = CommandFactory()
+        self.program = command_factory.make_enemy_program()
 
     def update(self, event_listener):
         if self.entity_container.entity_container.in_transition:
@@ -257,17 +227,7 @@ class Enemy(Collider, GridMover):
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
-
-        x_change = self.command_queue[self.command_index][0]
-        y_change = self.command_queue[self.command_index][1]
-        self.command_index += 1
-        if self.command_index >= len(self.command_queue):
-            self.command_index = 0
-
-        grid_destination_x = self.entity_container.grid_x + x_change
-        grid_destination_y = self.entity_container.grid_y + y_change
-        # Define where the transition should stop, shit will also check if the move is possible
-        self.transition.define_transition(grid_destination_x, grid_destination_y)
+        self.program.do_command(self)
 
 
 class Goal(Collider, GridMover):
@@ -539,7 +499,7 @@ class GridContainer:
         ent.entity_container.remove_entity(ent)
         self.entities.remove(ent)
 
-    def check_input(self, event_listener):
+    def check_input(self, event_listener, program):
         x_change = 0
         y_change = 0
         if event_listener.K_LEFT:
@@ -550,7 +510,15 @@ class GridContainer:
             y_change -= 2
         if event_listener.K_DOWN:
             y_change += 2
-        return x_change, y_change
+
+        if x_change < 0:
+            program.add_child(MoveLeftCommand())
+        elif x_change > 0:
+            program.add_child(MoveRightCommand())
+        if y_change < 0:
+            program.add_child(MoveUpCommand())
+        elif y_change > 0:
+            program.add_child(MoveDownCommand())
 
     def move_grid_entity(self, ent, destination_x, destination_y):
         ent.entity_container.remove_entity(ent)
@@ -578,7 +546,7 @@ class GridContainer:
         return player_within_grid and not player_wall_collision
 
     def begin_transition(self):
-        if len(self.player.command_queue) <= 0:
+        if self.player.program.command_pointer >= len(self.player.program.children):
             return False
         self.transition_timer = Timer(self.transition_cooldown)
         self.timer_container.append(self.transition_timer)
@@ -612,9 +580,7 @@ class Grid(EntityContainer, GridContainer):
                 or event_listener.K_DOWN
             )
         ):
-            x_change, y_change = self.check_input(event_listener)
-            # If there is input, apply the input by putting a command on the player's queue
-            self.player.command_queue.append((x_change, y_change))
+            self.check_input(event_listener, self.player.program)
             # Set the input_cooldown_timer to better separate individual key presses
             self.input_timer = Timer(self.input_cooldown)
             self.timer_container.append(self.input_timer)
