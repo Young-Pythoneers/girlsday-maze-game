@@ -1,5 +1,7 @@
 from abc import ABC
 
+from girlsday_game.music import Music
+
 
 class Command(ABC):
     def __init__(self):
@@ -7,7 +9,7 @@ class Command(ABC):
         self.children = []
         self.command_pointer = 0
 
-    def do_command(self):
+    def do_command(self, ent):
         ...
 
     def add_child(self, command):
@@ -18,11 +20,11 @@ class Program(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self):
+    def do_command(self, entity):
         if self.command_pointer >= len(self.children):
             return False
         command = self.children[self.command_pointer]
-        command.do_command()
+        command.do_command(entity)
         return self.command_pointer < len(self.children)
 
     def add_child(self, command):
@@ -30,41 +32,47 @@ class Program(Command):
         self.children.append(command)
 
 
-class MoveCommand(Command):
+class MoveLeftCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self):
+    def do_command(self, entity):
         self.parent.command_pointer += 1
-        print("MoveCommand")
+        entity.transition.define_transition(entity.entity_container.grid_x - 2, entity.entity_container.grid_y)
 
 
-class AttackCommand(Command):
+class MoveRightCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self):
+    def do_command(self, entity):
         self.parent.command_pointer += 1
-        print("AttackCommand")
+        entity.transition.define_transition(entity.entity_container.grid_x + 2, entity.entity_container.grid_y)
 
-
-class JumpCommand(Command):
+class MoveUpCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self):
+    def do_command(self, entity):
         self.parent.command_pointer += 1
-        print("JumpCommand")
+        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y - 2)
 
-
-class PiepCommand(Command):
+class MoveDownCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self):
+    def do_command(self, entity):
         self.parent.command_pointer += 1
-        print("PiepCommand")
+        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y + 2)
 
+class MooCommand(Command):
+    def __init__(self):
+        Command.__init__(self)
+
+    def do_command(self, entity):
+        self.parent.command_pointer += 1
+        Music.sound_handler("../sounds/moo.wav", 0)
+        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y)
 
 class LoopCommand(Command):
     def __init__(self, repeats):
@@ -73,11 +81,11 @@ class LoopCommand(Command):
         self.repeats = repeats
         self.iterator = 1
 
-    def do_command(self):
+    def do_command(self, entity):
         # print("LoopCommand")
         command = self.children[self.command_pointer]
-        command.do_command()
-        self.loop_break = not self.iterator < self.repeats
+        command.do_command(entity)
+        self.loop_break = self.repeats != -1 and not self.iterator < self.repeats
         if self.command_pointer == len(self.children):
             if self.loop_break:
                 self.iterator = 1
@@ -90,27 +98,14 @@ class LoopCommand(Command):
         command.parent = self
         self.children.append(command)
 
-
-if __name__ == "__main__":
-    program = Program()
-
-    loop = LoopCommand(2)
-    loop.add_child(MoveCommand())
-    loop.add_child(AttackCommand())
-
-    loop2 = LoopCommand(2)
-    loop2.add_child(JumpCommand())
-
-    loop3 = LoopCommand(2)
-    loop3.add_child(PiepCommand())
-
-    loop2.add_child(loop3)
-
-    loop.add_child(loop2)
-
-    program.add_child(loop)
-    # print(program.children)
-    while True:
-        do_we_continue = program.do_command()
-        if not do_we_continue:
-            break
+class CommandFactory:
+    def make_enemy_program(self):
+        program = Program()
+        loop = LoopCommand(-1)#-1 means infinite repeats
+        loop.add_child(MoveRightCommand())
+        loop.add_child(MooCommand())
+        loop.add_child(MooCommand())
+        loop.add_child(MoveLeftCommand())
+        loop.add_child(MooCommand())
+        program.add_child(loop)
+        return program
