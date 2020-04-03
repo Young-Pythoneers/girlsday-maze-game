@@ -28,7 +28,7 @@ class Game:
         player = Player()
         self.grid.add_grid_entity(player, 1, 1)
         enemy = Enemy(player)
-        self.grid.add_grid_entity(enemy, 7, 5)
+        self.grid.add_grid_entity(enemy, 11, 5)
 
     def run(self):
 

@@ -13,7 +13,8 @@ class Command(ABC):
         ...
 
     def add_child(self, command):
-        ...
+        command.parent = self
+        self.children.append(command)
 
 
 class Program(Command):
@@ -94,18 +95,41 @@ class LoopCommand(Command):
                 self.iterator += 1
             self.command_pointer = 0
 
-    def add_child(self, command):
-        command.parent = self
-        self.children.append(command)
+
+class IfElseCommand(Command):
+    def __init__(self, boolean_statement):
+        Command.__init__(self)
+        self.boolean_statement = boolean_statement
+
+    def do_command(self, ent):
+        if self.boolean_statement.is_true(ent):
+            command = self.children[0]
+        else:
+            command = self.children[1]
+        self.parent.command_pointer += 1
+        command.do_command(ent)
+
+class BooleanStatement:
+    def is_true(self, ent):
+        ...
+
+class ObjectOnLeft(BooleanStatement):
+    def is_true(self, ent):
+        grid_x = ent.entity_container.grid_x - 1
+        grid_y = ent.entity_container.grid_y
+        left_neighbors = ent.entity_container.entity_container.grid[grid_y][grid_x].entities
+        return len(left_neighbors) > 0
+
+
 
 class CommandFactory:
     def make_enemy_program(self):
         program = Program()
         loop = LoopCommand(-1)#-1 means infinite repeats
-        loop.add_child(MoveRightCommand())
-        loop.add_child(MooCommand())
-        loop.add_child(MooCommand())
-        loop.add_child(MoveLeftCommand())
+        if_else_command = IfElseCommand(ObjectOnLeft())
+        if_else_command.add_child(MoveRightCommand())
+        if_else_command.add_child(MoveLeftCommand())
+        loop.add_child(if_else_command)
         loop.add_child(MooCommand())
         program.add_child(loop)
         return program
