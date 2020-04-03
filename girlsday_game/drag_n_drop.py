@@ -1,6 +1,6 @@
 import pygame
 import random
-
+import time
 from pygame.sprite import Sprite
 
 class Key(Sprite):
@@ -37,7 +37,6 @@ button_list = [[up, 100, 10, 0], [down, 200, 10, 1], [right, 300, 10, 2], [left,
 for x in button_list:
     key_list.add(Key(x[0], x[1], x[2], x[3]))
 
-print(key_list)
 
 while not done:
     for event in pygame.event.get():
@@ -47,9 +46,9 @@ while not done:
             pos = pygame.mouse.get_pos()
             x = pos[0]
             y = pos[1]
-            if event.button == 3:
-                pass
-            elif event.button == 1:
+
+            if event.button == 1:
+
                 for key in key_list:
                     if key.rect.collidepoint(pos):
                         for x in button_list:
@@ -63,8 +62,12 @@ while not done:
             drag_id = 0
 
     for key in key_list:
-        if key.clicked == True:
-            pos = pygame.mouse.get_pos()
+        pos = pygame.mouse.get_pos()
+        #print(len(pygame.sprite.spritecollide(key,key_list, False)))
+        #CAN BE USED FOR COLLISION DETECTION, if len of list > 2
+        #maybe generate here the new buttons
+        if key.rect.collidepoint(pos) == 1 and key.clicked == True:
+
             key.rect.x = pos[0] - (key.rect.width/2)
             key.rect.y = pos[1] - (key.rect.height/2)
 
