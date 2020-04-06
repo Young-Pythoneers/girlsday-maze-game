@@ -48,7 +48,6 @@ while not done:
             pos = pygame.mouse.get_pos()
             x = pos[0]
             y = pos[1]
-            print(pos)
 
             if event.button == 1:
                 for key in key_list:
@@ -56,9 +55,13 @@ while not done:
                         # for x in button_list:
                         #     if key.rect[1] == x[1]:
                         #         key_list.add(Key(x[0], x[1], x[2], x[3]))
+
                         key.clicked = True
 
         if event.type == pygame.MOUSEBUTTONUP:
+            if pos[0] > 100:
+                key_list.add(Key(up))
+
             for key in key_list:
                 key.clicked = False
             drag_id = 0
@@ -66,18 +69,18 @@ while not done:
     for number, key in enumerate(key_list):
         pos = pygame.mouse.get_pos()
 
-
-        #print(len(pygame.sprite.spritecollide(key,key_list, False)))
-        #CAN BE USED FOR COLLISION DETECTION, if len of list > 2
-        #maybe generate here the new buttons
-
-        # if pos[0] > 100:
-
-        if key.clicked == True:
-            print(pygame.sprite.LayeredUpdates.get_sprite(key_list, 0))
-
+        # if clicked and no collision you can move the object
+        if key.clicked == True and len(pygame.sprite.spritecollide(key,key_list, False)) == 1:
             key.rect.x = pos[0] - (key.rect.width/2)
             key.rect.y = pos[1] - (key.rect.height/2)
+
+        elif key.clicked == True and len(pygame.sprite.spritecollide(key, key_list, False)) > 1:
+            key.rect.x = key.rect.x - 200
+            key.rect.y = key.rect.x - 200
+
+        # else:
+        #     key.rect.x = pos[0] - (key.rect.width / 2)
+        #     key.rect.y = pos[1] - (key.rect.height / 2)
 
 
     screen.fill(Black)
