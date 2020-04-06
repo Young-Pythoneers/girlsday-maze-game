@@ -51,9 +51,9 @@ while not done:
 
                 for key in key_list:
                     if key.rect.collidepoint(pos):
-                        for x in button_list:
-                            if key.rect[1] == x[1]:
-                                key_list.add(Key(x[0], x[1], x[2], x[3]))
+                        # for x in button_list:
+                        #     if key.rect[1] == x[1]:
+                        #         key_list.add(Key(x[0], x[1], x[2], x[3]))
                         key.clicked = True
 
         if event.type == pygame.MOUSEBUTTONUP:
@@ -61,15 +61,23 @@ while not done:
                 key.clicked = False
             drag_id = 0
 
-    for key in key_list:
+    for number, key in enumerate(key_list):
         pos = pygame.mouse.get_pos()
+
+        print(number)
+        if (key.rect[0] > (button_list[number][2] + 80)):
+            key_list.add(
+                Key(button_list[number][0], button_list[number][1], button_list[number][2], button_list[number][3]))
+
         #print(len(pygame.sprite.spritecollide(key,key_list, False)))
         #CAN BE USED FOR COLLISION DETECTION, if len of list > 2
         #maybe generate here the new buttons
-        if key.rect.collidepoint(pos) == 1 and key.clicked == True:
+
+        if key.clicked == True:
 
             key.rect.x = pos[0] - (key.rect.width/2)
             key.rect.y = pos[1] - (key.rect.height/2)
+
 
     screen.fill(Black)
     key_list.draw(screen)
