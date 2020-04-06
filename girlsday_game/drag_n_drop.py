@@ -66,6 +66,7 @@ while not done:
     for number, key in enumerate(key_list):
         pos = pygame.mouse.get_pos()
 
+
         #print(len(pygame.sprite.spritecollide(key,key_list, False)))
         #CAN BE USED FOR COLLISION DETECTION, if len of list > 2
         #maybe generate here the new buttons
