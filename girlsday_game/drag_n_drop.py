@@ -64,7 +64,15 @@ while not done:
     for number, key in enumerate(key_list):
         pos = pygame.mouse.get_pos()
 
+        print("len_keylist:")
+        print(len(key_list))
+        print("number:")
         print(number)
+        print(key.rect[0])
+        print("len:")
+        print(len(button_list))
+        print(button_list[number])
+        print(button_list[number][2])
         if (key.rect[0] > (button_list[number][2] + 80)):
             key_list.add(
                 Key(button_list[number][0], button_list[number][1], button_list[number][2], button_list[number][3]))

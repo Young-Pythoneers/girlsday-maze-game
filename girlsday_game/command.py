@@ -119,12 +119,12 @@ class InfLoopCommand(Command):
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         self.scope.parent_scope = parent_scope
         while True:
-            if self.command_pointer == len(self.children):
-                self.command_pointer = 0
             command = self.children[self.command_pointer]
             increment, success = command.do_command(entity, self.scope)
             if increment:
                 self.command_pointer += 1
+            if self.command_pointer == len(self.children):
+                self.command_pointer = 0
             if success:
                 return False, True
 
@@ -132,16 +132,15 @@ class LoopCommand(Command):
     def __init__(self, repeats):
         Command.__init__(self)
         self.repeats = repeats
-        self.iterator = 1
+        self.iterator = 0
 
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         self.scope.parent_scope = parent_scope
         while True:
             loop_break = not self.iterator < self.repeats
-            if self.command_pointer == len(self.children):
-                self.command_pointer = 0
+            if self.command_pointer == 0:
                 if loop_break:
-                    self.iterator = 1
+                    self.iterator = 0
                     return True, False
                 else:
                     self.iterator += 1
@@ -149,6 +148,8 @@ class LoopCommand(Command):
             increment, success = command.do_command(entity, self.scope)
             if increment:
                 self.command_pointer += 1
+            if self.command_pointer == len(self.children):
+                self.command_pointer = 0
             if success:
                 return False, True
 
@@ -161,15 +162,14 @@ class LoopUntilBool(Command):
         self.scope.parent_scope = parent_scope
         while True:
             loop_break = self.boolean_statement.is_true(entity, self.scope)
-            if self.command_pointer == len(self.children):
-                self.command_pointer = 0
-                if loop_break:
-                    return True, False
+            if self.command_pointer == 0 and loop_break:
+                return True, False
             command = self.children[self.command_pointer]
-            print("vla")
             increment, success = command.do_command(entity, self.scope)
             if increment:
                 self.command_pointer += 1
+            if self.command_pointer == len(self.children):
+                self.command_pointer = 0
             if success:
                 return False, True
 
@@ -303,8 +303,16 @@ if __name__ == "__main__":
     entity = None
     program = Program()
 
-    loop = LoopCommand(3)
+    loop = LoopCommand(2)
 
+    loop.add_child(VlaCommand())
+
+    loop2 = LoopCommand(3)
+    loop2.add_child(FlipCommand())
+
+    loop.add_child(loop2)
+
+    program.add_child(loop)
 
     do_we_continue = True
     while do_we_continue:
