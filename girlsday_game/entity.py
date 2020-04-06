@@ -187,7 +187,7 @@ class Player(Collider, GridMover):
     def begin_transition(self):
         # Read a command
         if self.program.command_pointer < len(self.program.children):
-            self.program.do_command(self)
+            self.program.do_command(self, None)
             if self.program.command_pointer >= len(self.program.children):
                 # If there is no command on the queue tell the grid that it should not play transitions after this one
                 self.entity_container.entity_container.play = False
@@ -227,7 +227,7 @@ class Enemy(Collider, GridMover):
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
         # Maar deze functie is helaas nog onleesbaar, ik zal hem meer refactoren zodat het beter te begrijpen is
         # Read a command
-        self.program.do_command(self)
+        self.program.do_command(self, None)
 
 
 class Goal(Collider, GridMover):
