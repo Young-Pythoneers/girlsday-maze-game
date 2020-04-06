@@ -4,15 +4,15 @@ import time
 from pygame.sprite import Sprite
 
 class Key(Sprite):
-    def __init__(self, image, y, x, id):
+    def __init__(self, button):
         Sprite.__init__(self)
-        self.image=image
+        self.image=button[0]
         self.clicked = False
         self.rect = self.image.get_rect()
-        self.rect.y = y
-        self.rect.x = x
+        self.rect.y = button[1]
+        self.rect.x = button[2]
         self.clicked = False
-        self.id = id
+        self.id = button[3]
 
 
 pygame.init()
@@ -29,13 +29,15 @@ clock = pygame.time.Clock()
 
 key_list = pygame.sprite.Group()
 
-up = pygame.image.load("../images/buttons/up.png")
-down = pygame.image.load("../images/buttons/down.png")
-left = pygame.image.load("../images/buttons/left.png")
-right = pygame.image.load("../images/buttons/right.png")
-button_list = [[up, 100, 10, 0], [down, 200, 10, 1], [right, 300, 10, 2], [left, 400, 10, 3]]
-for x in button_list:
-    key_list.add(Key(x[0], x[1], x[2], x[3]))
+up = [pygame.image.load("../images/buttons/up.png"),100, 10, 0]
+down = [pygame.image.load("../images/buttons/down.png"), 200, 10, 1]
+left = [pygame.image.load("../images/buttons/left.png"), 300, 10, 1]
+right = [pygame.image.load("../images/buttons/right.png"), 400, 10, 1]
+
+key_list.add(Key(up))
+key_list.add(Key(down))
+key_list.add(Key(left))
+key_list.add(Key(right))
 
 
 while not done:
@@ -46,9 +48,9 @@ while not done:
             pos = pygame.mouse.get_pos()
             x = pos[0]
             y = pos[1]
+            print(pos)
 
             if event.button == 1:
-
                 for key in key_list:
                     if key.rect.collidepoint(pos):
                         # for x in button_list:
@@ -64,16 +66,14 @@ while not done:
     for number, key in enumerate(key_list):
         pos = pygame.mouse.get_pos()
 
-        print(number)
-        if (key.rect[0] > (button_list[number][2] + 80)):
-            key_list.add(
-                Key(button_list[number][0], button_list[number][1], button_list[number][2], button_list[number][3]))
-
         #print(len(pygame.sprite.spritecollide(key,key_list, False)))
         #CAN BE USED FOR COLLISION DETECTION, if len of list > 2
         #maybe generate here the new buttons
 
+        # if pos[0] > 100:
+
         if key.clicked == True:
+            print(pygame.sprite.LayeredUpdates.get_sprite(key_list, 0))
 
             key.rect.x = pos[0] - (key.rect.width/2)
             key.rect.y = pos[1] - (key.rect.height/2)
