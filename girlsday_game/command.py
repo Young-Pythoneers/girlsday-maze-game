@@ -1,19 +1,24 @@
 from abc import ABC
 
 from girlsday_game.music import Music
+from typing import Tuple
+
+class Scope:
+    def __init__(self, parent_scope):
+        self.scope = {}
+        self.parent_scope = parent_scope
 
 
 class Command(ABC):
     def __init__(self):
-        self.parent = None
         self.children = []
         self.command_pointer = 0
+        self.scope = Scope(None)
 
-    def do_command(self, ent):
+    def do_command(self, ent, parent_scope) -> Tuple[bool, bool]:
         ...
 
     def add_child(self, command):
-        command.parent = self
         self.children.append(command)
 
 
@@ -21,115 +26,257 @@ class Program(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self, entity):
-        if self.command_pointer >= len(self.children):
-            return False
-        command = self.children[self.command_pointer]
-        command.do_command(entity)
-        return self.command_pointer < len(self.children)
-
-    def add_child(self, command):
-        command.parent = self
-        self.children.append(command)
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
+        while True:
+            if self.command_pointer >= len(self.children):
+                return False, False
+            command = self.children[self.command_pointer]
+            increment, success = command.do_command(entity, self.scope)
+            if increment:
+                self.command_pointer += 1
+            if success:
+                return False, True
 
 
 class MoveLeftCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self, entity):
-        self.parent.command_pointer += 1
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         entity.transition.define_transition(entity.entity_container.grid_x - 2, entity.entity_container.grid_y)
+        return True, True
 
 
 class MoveRightCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self, entity):
-        self.parent.command_pointer += 1
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         entity.transition.define_transition(entity.entity_container.grid_x + 2, entity.entity_container.grid_y)
+        return True, True
 
 class MoveUpCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self, entity):
-        self.parent.command_pointer += 1
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y - 2)
+        return True, True
 
 class MoveDownCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self, entity):
-        self.parent.command_pointer += 1
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y + 2)
+        return True, True
+
+class MoveInDirectionCommand(Command):
+    def __init__(self):
+        Command.__init__(self)
+
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
+        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y + 2)
+        return True, True
 
 class MooCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
-    def do_command(self, entity):
-        self.parent.command_pointer += 1
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         Music.sound_handler("../sounds/moo.wav", 0)
         entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y)
+        return True, True
+
+class VlaCommand(Command):
+    def __init__(self):
+        Command.__init__(self)
+
+    def do_command(self, ent, parent_scope) -> Tuple[bool, bool]:
+        print("VlaCommand")
+        return True, True
+
+class FlipCommand(Command):
+    def __init__(self):
+        Command.__init__(self)
+
+    def do_command(self, ent, parent_scope) -> Tuple[bool, bool]:
+        print("FlipCommand")
+        return True, True
+
+class FloerpCommand(Command):
+    def __init__(self):
+        Command.__init__(self)
+
+    def do_command(self, ent, parent_scope) -> Tuple[bool, bool]:
+        print("FloerpCommand")
+        return True, True
+
+class InfLoopCommand(Command):
+    def __init__(self):
+        Command.__init__(self)
+
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
+        self.scope.parent_scope = parent_scope
+        while True:
+            if self.command_pointer == len(self.children):
+                self.command_pointer = 0
+            command = self.children[self.command_pointer]
+            increment, success = command.do_command(entity, self.scope)
+            if increment:
+                self.command_pointer += 1
+            if success:
+                return False, True
 
 class LoopCommand(Command):
     def __init__(self, repeats):
         Command.__init__(self)
-        self.loop_break = False
         self.repeats = repeats
         self.iterator = 1
 
-    def do_command(self, entity):
-        # print("LoopCommand")
-        command = self.children[self.command_pointer]
-        command.do_command(entity)
-        self.loop_break = self.repeats != -1 and not self.iterator < self.repeats
-        if self.command_pointer == len(self.children):
-            if self.loop_break:
-                self.iterator = 1
-                self.parent.command_pointer += 1
-            else:
-                self.iterator += 1
-            self.command_pointer = 0
+    def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
+        self.scope.parent_scope = parent_scope
+        while True:
+            loop_break = not self.iterator < self.repeats
+            if self.command_pointer == len(self.children):
+                self.command_pointer = 0
+                if loop_break:
+                    self.iterator = 1
+                    return True, False
+                else:
+                    self.iterator += 1
+            command = self.children[self.command_pointer]
+            increment, success = command.do_command(entity, self.scope)
+            if increment:
+                self.command_pointer += 1
+            if success:
+                return False, True
 
+
+class IfCommand(Command):
+    def __init__(self, boolean_statement):
+        Command.__init__(self)
+        self.boolean_statement = boolean_statement
+        self.internal_state = False
+
+    def do_command(self, ent, parent_scope) -> Tuple[bool, bool]:
+        if self.internal_state or self.boolean_statement.is_true(ent, parent_scope):
+            self.internal_state = True
+            command = self.children[0]
+            increment, success = command.do_command(ent, parent_scope)
+            if increment and not self.boolean_statement.is_true(ent):
+                self.internal_state = False
+        else:
+            increment = True
+            success = False
+        return increment, success
 
 class IfElseCommand(Command):
     def __init__(self, boolean_statement):
         Command.__init__(self)
         self.boolean_statement = boolean_statement
+        self.internal_state = False
 
-    def do_command(self, ent):
-        if self.boolean_statement.is_true(ent):
+    def do_command(self, ent, parent_scope) -> Tuple[bool, bool]:
+        if self.internal_state or self.boolean_statement.is_true(ent):
+            self.internal_state = True
             command = self.children[0]
+            increment, success = command.do_command(ent, parent_scope)
+            if increment and not self.boolean_statement.is_true(ent):
+                self.internal_state = False
         else:
             command = self.children[1]
-        self.parent.command_pointer += 1
-        command.do_command(ent)
+            increment, success = command.do_command(ent)
+        return increment, success
+
+class BooleanOperator:
+    def __init__(self):
+        self.children = []
+
+    def add_child(self, command):
+        self.children.append(command)
 
 class BooleanStatement:
-    def is_true(self, ent):
+    def is_true(self, ent, parent_scope):
         ...
 
-class ObjectOnLeft(BooleanStatement):
-    def is_true(self, ent):
+class WallOnLeft(BooleanStatement):
+    def is_true(self, ent, parent_scope):
         grid_x = ent.entity_container.grid_x - 1
         grid_y = ent.entity_container.grid_y
         left_neighbors = ent.entity_container.entity_container.grid[grid_y][grid_x].entities
         return len(left_neighbors) > 0
 
+class WallOnRight(BooleanStatement):
+    def is_true(self, ent, parent_scope):
+        grid_x = ent.entity_container.grid_x + 1
+        grid_y = ent.entity_container.grid_y
+        left_neighbors = ent.entity_container.entity_container.grid[grid_y][grid_x].entities
+        return len(left_neighbors) > 0
+
+class WallOnUp(BooleanStatement):
+    def is_true(self, ent, parent_scope):
+        grid_x = ent.entity_container.grid_x
+        grid_y = ent.entity_container.grid_y - 1
+        left_neighbors = ent.entity_container.entity_container.grid[grid_y][grid_x].entities
+        return len(left_neighbors) > 0
+
+class WallOnDown(BooleanStatement):
+    def is_true(self, ent, parent_scope):
+        grid_x = ent.entity_container.grid_x
+        grid_y = ent.entity_container.grid_y + 1
+        left_neighbors = ent.entity_container.entity_container.grid[grid_y][grid_x].entities
+        return len(left_neighbors) > 0
+
+class BooleanAnd(BooleanOperator, BooleanStatement):
+    def __init__(self):
+        BooleanOperator.__init__(self)
+        BooleanStatement.__init__(self)
+
+    def is_true(self, ent, parent_scope):
+        return self.children[0].is_true() and self.children[1].is_true()
+
+class BooleanOr(BooleanOperator, BooleanStatement):
+    def __init__(self):
+        BooleanOperator.__init__(self)
+        BooleanStatement.__init__(self)
+
+    def is_true(self, ent, parent_scope):
+        return self.children[0].is_true() or self.children[1].is_true()
+
+class BooleanNot(BooleanOperator, BooleanStatement):
+    def __init__(self):
+        BooleanOperator.__init__(self)
+        BooleanStatement.__init__(self)
+
+    def is_true(self, ent, parent_scope):
+        return not self.children[0].is_true()
 
 
 class CommandFactory:
     def make_enemy_program(self):
         program = Program()
-        loop = LoopCommand(-1)#-1 means infinite repeats
-        if_else_command = IfElseCommand(ObjectOnLeft())
-        if_else_command.add_child(MoveRightCommand())
-        if_else_command.add_child(MoveLeftCommand())
-        loop.add_child(if_else_command)
-        loop.add_child(MooCommand())
+        loop = InfLoopCommand()
+        if_command = IfCommand(WallOnLeft())
+        loop2 = InfLoopCommand()
+        loop2.add_child(MooCommand())
+        if_command.add_child(loop2)
+
+        loop.add_child(if_command)
+        loop.add_child(MoveRightCommand())
+        loop.add_child(MoveLeftCommand())
+        loop.add_child(MoveLeftCommand())
         program.add_child(loop)
         return program
+
+if __name__ == "__main__":
+    ent = None
+    program = Program()
+
+    loop = LoopCommand(3)
+
+
+    do_we_continue = True
+    while do_we_continue:
+        _, do_we_continue = program.do_command(ent, None)
+    print("done")
