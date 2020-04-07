@@ -52,10 +52,6 @@ while not done:
             if event.button == 1:
                 for key in key_list:
                     if key.rect.collidepoint(pos):
-                        # for x in button_list:
-                        #     if key.rect[1] == x[1]:
-                        #         key_list.add(Key(x[0], x[1], x[2], x[3]))
-
                         key.clicked = True
 
         if event.type == pygame.MOUSEBUTTONUP:
@@ -67,20 +63,23 @@ while not done:
             drag_id = 0
 
     for number, key in enumerate(key_list):
-        pos = pygame.mouse.get_pos()
 
         # if clicked and no collision you can move the object
         if key.clicked == True and len(pygame.sprite.spritecollide(key,key_list, False)) == 1:
-            key.rect.x = pos[0] - (key.rect.width/2)
-            key.rect.y = pos[1] - (key.rect.height/2)
+            pos = pygame.mouse.get_pos()
 
-        elif key.clicked == True and len(pygame.sprite.spritecollide(key, key_list, False)) > 1:
-            key.rect.x = key.rect.x - 200
-            key.rect.y = key.rect.x - 200
+            px = pos[0] - (key.rect.width/2)
+            py = pos[1] - (key.rect.height/2)
 
-        # else:
-        #     key.rect.x = pos[0] - (key.rect.width / 2)
-        #     key.rect.y = pos[1] - (key.rect.height / 2)
+            key.rect.x = px
+            key.rect.y = py
+
+            # if a collision is detected you should not be allowed to place the object
+            if len(pygame.sprite.spritecollide(key,key_list, False)) > 1:
+                #print(pygame.mouse.get_pressed())
+                key.rect.x <= px
+                key.rect.y <= py
+
 
 
     screen.fill(Black)
