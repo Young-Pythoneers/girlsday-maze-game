@@ -421,7 +421,8 @@ class EntityContainer:
 
     def update_entities(self, event_listener):
         for ent in self.entities:
-            ent.update(event_listener)
+            if isinstance(ent, Updateable):
+                ent.update(event_listener)
 
 
 class GridPointInfo:
@@ -704,3 +705,21 @@ class LevelBuilder:
                 stop -= 1
             else:
                 i += 1
+
+
+class GridBackGround(Entity):
+    def __init__(self, entity_container):
+        Entity.__init__(self, entity_container)
+        width, depth = 400, 600
+        self.x = 800 + width // 2
+        self.y = 0 + depth // 2
+        self.image = pygame.Surface((width, depth))
+        self.image.fill((255, 220, 0))
+        self.x_size = width
+        self.y_size = depth
+
+
+class Gui(EntityContainer):
+    def __init__(self):
+        EntityContainer.__init__(self)
+        self.entities.append(GridBackGround(self))

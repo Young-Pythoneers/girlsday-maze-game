@@ -2,7 +2,7 @@ import pygame
 
 from girlsday_game.collisions import Collisions
 from girlsday_game.display import Display
-from girlsday_game.entity import Enemy, Goal, Grid, Player, Score
+from girlsday_game.entity import Enemy, Goal, Grid, Gui, Player, Score
 from girlsday_game.listener import EventListener
 from girlsday_game.music import Music
 from girlsday_game.physics import Physics
@@ -21,13 +21,14 @@ class Game:
             "../levels/lvl5.txt",
         ]
         self.level_pointer = 0
-        self.display = Display(self, 800, 600)
+        self.display = Display(self, 1200, 600)
         self.event_listener = EventListener(self)
         self.timer_container = TimerContainer()
         self.grid = Grid(self.timer_container, self.levels[self.level_pointer], self)
         self.music = Music(self)
         self.collisions = Collisions(self)
         self.physics = Physics(self)
+        self.gui = Gui()
         # goal = Goal()
         # self.grid.add_grid_entity(goal, 3, 1)
 
@@ -61,7 +62,7 @@ class Game:
                 self.grid.entities, self.event_listener, self.timer_container
             )
             self.grid.update_entities(self.event_listener)
-            self.display.draw_screen(self.grid.entities)
+            self.display.draw_screen(self.grid.entities + self.gui.entities)
             self.timer_container.update_timers()
 
             if not do_we_continue is None:
