@@ -14,16 +14,15 @@ class Transition(ABC):
 
     def transition(self, event_listener, timer_container):
         time_fraction = (
-                self.entity.entity_container.entity_container.transition_timer.timer
-                / self.entity.entity_container.entity_container.transition_timer.timer_duration
+            self.entity.entity_container.entity_container.transition_timer.timer
+            / self.entity.entity_container.entity_container.transition_timer.timer_duration
         )
         self.entity.x = self.transition_start_x + (
-                self.transition_stop_x - self.transition_start_x
+            self.transition_stop_x - self.transition_start_x
         ) * self.transition_function(time_fraction)
         self.entity.y = self.transition_start_y + (
-                self.transition_stop_y - self.transition_start_y
+            self.transition_stop_y - self.transition_start_y
         ) * self.transition_function(time_fraction)
-
 
     def define_transition(self, grid_destination_x, grid_destination_y):
         # Check if the transition to the destination is possible

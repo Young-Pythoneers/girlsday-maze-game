@@ -1,11 +1,14 @@
-import pygame
 import random
 import time
+
+import pygame
 from pygame.sprite import Sprite
+
 
 class Key(Sprite):
     def __init__(self, button):
         Sprite.__init__(self)
+
         self.image=button[0]
         self.clicked = False
         self.rect = self.image.get_rect()
@@ -17,9 +20,9 @@ class Key(Sprite):
 
 pygame.init()
 
-Black = (0,0,0)
+Black = (0, 0, 0)
 
-size = (800,600)
+size = (800, 600)
 
 screen = pygame.display.set_mode(size)
 
@@ -28,6 +31,7 @@ done = False
 clock = pygame.time.Clock()
 
 key_list = pygame.sprite.Group()
+
 
 up = [pygame.image.load("../images/buttons/up.png"),100, 10, 0]
 down = [pygame.image.load("../images/buttons/down.png"), 200, 10, 1]
@@ -38,6 +42,7 @@ key_list.add(Key(up))
 key_list.add(Key(down))
 key_list.add(Key(left))
 key_list.add(Key(right))
+
 
 
 while not done:
@@ -79,7 +84,6 @@ while not done:
                 #print(pygame.mouse.get_pressed())
                 key.rect.x <= px
                 key.rect.y <= py
-
 
 
     screen.fill(Black)

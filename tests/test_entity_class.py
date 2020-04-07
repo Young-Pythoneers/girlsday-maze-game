@@ -1,8 +1,13 @@
+import pygame
+
 from girlsday_game.entity import (
     Enemy,
     Entity,
+    EntityContainer,
     Goal,
+    Grid,
     GridMover,
+    GridPoint,
     Particle,
     PhysicalEntity,
     Player,
@@ -13,10 +18,7 @@ from girlsday_game.entity import (
     Transitional,
     Wall,
 )
-from girlsday_game.entity import EntityContainer, Grid, GridPoint
 from girlsday_game.timer import TimerContainer
-
-import pygame
 
 
 def test_entity():
