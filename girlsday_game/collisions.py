@@ -3,11 +3,7 @@ import math
 
 import numpy as np
 
-from girlsday_game.entity import (
-    Collider,
-    Particle,
-    PhysicalEntity,
-)
+from girlsday_game.entity import Collider, Particle, PhysicalEntity
 
 
 class Collisions:

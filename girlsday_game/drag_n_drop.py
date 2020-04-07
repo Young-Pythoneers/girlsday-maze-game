@@ -1,12 +1,14 @@
-import pygame
 import random
 import time
+
+import pygame
 from pygame.sprite import Sprite
+
 
 class Key(Sprite):
     def __init__(self, image, y, x, id):
         Sprite.__init__(self)
-        self.image=image
+        self.image = image
         self.clicked = False
         self.rect = self.image.get_rect()
         self.rect.y = y
@@ -17,9 +19,9 @@ class Key(Sprite):
 
 pygame.init()
 
-Black = (0,0,0)
+Black = (0, 0, 0)
 
-size = (800,600)
+size = (800, 600)
 
 screen = pygame.display.set_mode(size)
 
@@ -33,7 +35,12 @@ up = pygame.image.load("../images/buttons/up.png")
 down = pygame.image.load("../images/buttons/down.png")
 left = pygame.image.load("../images/buttons/left.png")
 right = pygame.image.load("../images/buttons/right.png")
-button_list = [[up, 100, 10, 0], [down, 200, 10, 1], [right, 300, 10, 2], [left, 400, 10, 3]]
+button_list = [
+    [up, 100, 10, 0],
+    [down, 200, 10, 1],
+    [right, 300, 10, 2],
+    [left, 400, 10, 3],
+]
 for x in button_list:
     key_list.add(Key(x[0], x[1], x[2], x[3]))
 
@@ -73,19 +80,24 @@ while not done:
         print(len(button_list))
         print(button_list[number])
         print(button_list[number][2])
-        if (key.rect[0] > (button_list[number][2] + 80)):
+        if key.rect[0] > (button_list[number][2] + 80):
             key_list.add(
-                Key(button_list[number][0], button_list[number][1], button_list[number][2], button_list[number][3]))
+                Key(
+                    button_list[number][0],
+                    button_list[number][1],
+                    button_list[number][2],
+                    button_list[number][3],
+                )
+            )
 
-        #print(len(pygame.sprite.spritecollide(key,key_list, False)))
-        #CAN BE USED FOR COLLISION DETECTION, if len of list > 2
-        #maybe generate here the new buttons
+        # print(len(pygame.sprite.spritecollide(key,key_list, False)))
+        # CAN BE USED FOR COLLISION DETECTION, if len of list > 2
+        # maybe generate here the new buttons
 
         if key.clicked == True:
 
-            key.rect.x = pos[0] - (key.rect.width/2)
-            key.rect.y = pos[1] - (key.rect.height/2)
-
+            key.rect.x = pos[0] - (key.rect.width / 2)
+            key.rect.y = pos[1] - (key.rect.height / 2)
 
     screen.fill(Black)
     key_list.draw(screen)

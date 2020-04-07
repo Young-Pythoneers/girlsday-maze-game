@@ -20,7 +20,10 @@ class Physics:
         self.gravity = 10
 
     def apply_physics(
-        self, entities: List[Entity], event_listener: EventListener, timer_keeper: TimerContainer
+        self,
+        entities: List[Entity],
+        event_listener: EventListener,
+        timer_keeper: TimerContainer,
     ) -> None:
         """ Function that applies the following physical effects to PhysicalEntities only:
         friction, gravity and kinetic energy.

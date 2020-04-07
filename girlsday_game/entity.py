@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import pygame
 from numpy.random import uniform
 
-from girlsday_game.command import CommandFactory, Program, MoveLeftCommand, MoveRightCommand, MoveUpCommand, \
-    MoveDownCommand
+from girlsday_game.command import (
+    CommandFactory,
+    MoveDownCommand,
+    MoveLeftCommand,
+    MoveRightCommand,
+    MoveUpCommand,
+    Program,
+)
 from girlsday_game.music import Music
 from girlsday_game.timer import Timer, TimerContainer
-from girlsday_game.transition import CosTransition, WobblyTransition, InstantTransition
-from girlsday_game.timer import Timer, TimerContainer
+from girlsday_game.transition import CosTransition, InstantTransition, WobblyTransition
 
 
 class Entity:
@@ -77,7 +80,6 @@ class Collider:
         self._collisions = []
 
 
-
 class Physical:
     def __init__(self, x, y, impulse_x, impulse_y):
         self.x = x
@@ -134,6 +136,7 @@ class Wall(Collider, Entity):
     def update(self, event_listener):
         pass
 
+
 class GridMover(Commandable, Entity, Transitional, Updateable):
     def __init__(self, entity_container: EntityContainer):
         Commandable.__init__(self)
@@ -156,19 +159,9 @@ class Player(Collider, GridMover):
     def update(self, event_listener):
         if self.entity_container.entity_container.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition.transition(event_listener, self.entity_container.entity_container.timer_container)
-            # Calculate the distance to the goal
-            #distance_to_goal = math.sqrt(
-            #    math.pow(
-            #        (self.entity_container.grid_x - self.goal.entity_container.grid_x), 2
-            #    )
-            #    + math.pow(
-            #        (self.entity_container.grid_y - self.goal.entity_container.grid_y), 2
-            #    )
-            #)
-            #if distance_to_goal <= 0.7:
-                # If we are closer than one grid unit to the goal, the goal is eaten and points are scored
-                #self.goal.eaten = True
+            self.transition.transition(
+                event_listener, self.entity_container.entity_container.timer_container
+            )
 
     def update_collisions(self):
         for col in self._collisions:
@@ -180,7 +173,8 @@ class Player(Collider, GridMover):
                 dead_player.y = self.y
                 self.entity_container.entity_container.move_grid_entity(self, 1, 1)
                 self.entity_container.set_grid_xy_to_world_xy(self)
-                self.transition.define_transition(1,1)
+                self.transition.define_transition(1, 1)
+                self.entity_container.entity_container.game.reset()
         self._impulse_list = []
         self._collisions = []
 
@@ -200,6 +194,7 @@ class DeadPlayer(Entity):
         self.x_size = self.image.get_size()[1]
         self.y_size = self.image.get_size()[0]
 
+
 class Enemy(Collider, GridMover):
     def __init__(self, entity_container: EntityContainer = None):
         Collider.__init__(self)
@@ -217,11 +212,9 @@ class Enemy(Collider, GridMover):
     def update(self, event_listener):
         if self.entity_container.entity_container.in_transition:
             # If we are in transition mode, smoothly transition our world coordinates
-            self.transition.transition(event_listener, self.entity_container.entity_container.timer_container)
-
-    # def transition(self, event_listener):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
-
-    # def define_transition(self, transition_goal_x, transition_goal_y):#Nathan deze functie wordt geerfd van GridEntity, dus hoeft niet opnieuw gedefinieerd te worden
+            self.transition.transition(
+                event_listener, self.entity_container.entity_container.timer_container
+            )
 
     def begin_transition(self):
         # Nathan deze moet nog ingevuld worden hij moet gaan lijken op de begin_transition functie van Player
@@ -240,14 +233,15 @@ class Goal(Collider, GridMover):
         self._does_not_collide_with = [Wall]
 
     def begin_transition(self):
-        pass #TODO LSP violation: this has to do something, otherwise it is a violation
+        pass  # TODO LSP violation: this has to do something, otherwise it is a violation
 
     def update_collisions(self):
         for coll in self._collisions:
             if isinstance(coll, Player) or isinstance(coll, Enemy):
                 if isinstance(coll, Player):
+                    self.entity_container.entity_container.game.load_next_level()
                     self.entity_container.entity_container.score.score += 1
-                else:#if isinstance(coll, Enemy)
+                else:  # if isinstance(coll, Enemy)
                     self.entity_container.entity_container.score.score -= 100
                     Music.sound_handler("../sounds/evil_laugh.wav", 0)
                 Music.sound_handler("../sounds/munch.wav", 0)
@@ -257,7 +251,7 @@ class Goal(Collider, GridMover):
         self._impulse_list = []
         self._collisions = []
 
-    def __make_explosion(self):#TODO LSP violation resolved?
+    def __make_explosion(self):  # TODO LSP violation resolved?
         for i in range(20):
             angle = uniform(0, 2 * np.pi)
             magnitude = uniform(4, 6)
@@ -270,14 +264,16 @@ class Goal(Collider, GridMover):
             )
             self.entity_container.entity_container.add_entity(particle)
 
-    def __respawn(self):#TODO LSP violation resolved?
+    def __respawn(self):  # TODO LSP violation resolved?
         while True:
             grid_x = (
-                np.random.randint(0, self.entity_container.entity_container.size_x // 2) * 2
+                np.random.randint(0, self.entity_container.entity_container.size_x // 2)
+                * 2
                 + 1
             )
             grid_y = (
-                np.random.randint(0, self.entity_container.entity_container.size_y // 2) * 2
+                np.random.randint(0, self.entity_container.entity_container.size_y // 2)
+                * 2
                 + 1
             )
             if (
@@ -305,7 +301,9 @@ class Score(Entity, Updateable):
 
 
 class PhysicalEntity(Collider, Entity, Physical, Updateable):
-    def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
+    def __init__(
+        self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None
+    ):
         Collider.__init__(self)
         Entity.__init__(self, entity_container)
         Physical.__init__(self, x, y, impulse_x, impulse_y)
@@ -313,13 +311,14 @@ class PhysicalEntity(Collider, Entity, Physical, Updateable):
         self.x = x
         self.y = y
 
-
     def update(self, event_listener):
         pass
 
 
 class Particle(Destructable, PhysicalEntity):
-    def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
+    def __init__(
+        self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None
+    ):
         Destructable.__init__(self)
         PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
         self.speed = 0
@@ -338,7 +337,9 @@ class Particle(Destructable, PhysicalEntity):
 
 
 class Rocket(Destructable, PhysicalEntity):
-    def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
+    def __init__(
+        self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None
+    ):
         Destructable.__init__(self)
         PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
         self.speed = 40
@@ -352,8 +353,8 @@ class Rocket(Destructable, PhysicalEntity):
         self.impulse_multiplier = 0.1
 
     def update(self, event_listener, timer_container: TimerContainer):
-        #self.update_collisions()#TODO handle this according to commented code
-        #if self.collided:
+        # self.update_collisions()#TODO handle this according to commented code
+        # if self.collided:
         #    self.make_particles(timer_container)
         #    self.destroy()
         #    self.collided = False
@@ -382,7 +383,9 @@ class Rocket(Destructable, PhysicalEntity):
 
 
 class RocketDuck(PhysicalEntity):
-    def __init__(self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None):
+    def __init__(
+        self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None
+    ):
         PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
         self.speed = 20
         self.mass = 1
@@ -423,7 +426,14 @@ class EntityContainer:
 
 class GridPointInfo:
     def __init__(
-        self, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size, entity_container: EntityContainer = None
+        self,
+        grid_x,
+        grid_y,
+        zero_x,
+        zero_y,
+        tile_size,
+        wall_size,
+        entity_container: EntityContainer = None,
     ):
         self.entity_container = entity_container
         self.grid_x = grid_x
@@ -452,7 +462,14 @@ class GridPointInfo:
 
 class GridPoint(EntityContainer, GridPointInfo):
     def __init__(
-        self, grid_x, grid_y, zero_x, zero_y, tile_size, wall_size, entity_container: EntityContainer = None
+        self,
+        grid_x,
+        grid_y,
+        zero_x,
+        zero_y,
+        tile_size,
+        wall_size,
+        entity_container: EntityContainer = None,
     ):
         EntityContainer.__init__(self)
         GridPointInfo.__init__(
@@ -461,7 +478,8 @@ class GridPoint(EntityContainer, GridPointInfo):
 
 
 class GridContainer:
-    def __init__(self, timer_container: TimerContainer):
+    def __init__(self, timer_container: TimerContainer, file_name: str, game):
+        self.game = game
         self.size_x = 0
         self.size_y = 0
         self.zero_x = 50
@@ -480,12 +498,11 @@ class GridContainer:
         self.input_timer = Timer(0)
         self.timer_container.append(self.input_timer)  # can be removed in future
 
-        file_name = '../levels/lvl5.txt'
+        file_name = file_name
         self.level_builder = LevelBuilder(self)
         self.level_builder.load_level(file_name)
         self.grid = []
         self.level_builder.build_grid()
-
 
     def add_grid_entity(self, ent, grid_x, grid_y):
         if isinstance(ent, Player):
@@ -528,13 +545,6 @@ class GridContainer:
     def request_move(
         self, grid_source_x, grid_source_y, grid_destination_x, grid_destination_y
     ):
-        # TODO Nathan BEGIN
-        # Nathan: voordat een entity zich naar een nieuw GridPoint verplaatst, vraagt hij aan grid of dit wel kan / mag
-        # Voor nu wordt er alleen gekeken of een entity niet van de grid afloopt
-        # Je dit kunnen uitbreiden door te kijken of er een wall tussen de source en destination zit
-        # TODO Nathan END
-        # print(self.grid[grid_destination_y][grid_destination_x])
-
         player_within_grid = (
             0 <= grid_destination_x < self.size_x
             and 0 <= grid_destination_y < self.size_y
@@ -542,7 +552,7 @@ class GridContainer:
         player_wall_collision = [
             (grid_destination_x + grid_source_x) / 2,
             (grid_destination_y + grid_source_y) / 2,
-        ] in self.all_walls#TODO this should be possible without a self.all_walls variable
+        ] in self.all_walls  # TODO this should be possible without a self.all_walls variable
 
         return player_within_grid and not player_wall_collision
 
@@ -565,9 +575,9 @@ class GridContainer:
 
 
 class Grid(EntityContainer, GridContainer):
-    def __init__(self, timer_container: TimerContainer):
+    def __init__(self, timer_container: TimerContainer, file_name: str, game):
         EntityContainer.__init__(self)
-        GridContainer.__init__(self, timer_container)
+        GridContainer.__init__(self, timer_container, file_name, game)
 
     def update_entities(self, event_listener):
         # Check the event_listener to see if there is keyboard input
@@ -608,27 +618,11 @@ class LevelBuilder:
     def __init__(self, grid_container: GridContainer):
         self.grid_container = grid_container
 
-
     def load_level(self, file_name: str):
         self.level = []
         with open(file_name) as f:
             for line in f:
                 self.level.append(line.rstrip())
-        #self.level = np.array(
-        #    [
-        #        "wwwwwwwwwwwwwww",
-        #        "wtntntntntntntw",
-        #        "wnwwwwwnwwwwwnw",
-        #        "wtwtntntwtntwtw",
-        #        "wnwnwwwwwwwnwnw",
-        #        "wtntwtntntntwtw",
-        #        "wnnnwwwwwnnnwnw",
-        #        "wtntntntntntntw",
-        #        "wwwwwwwwwwwwwww",
-        #    ]
-        #)
-        print(self.level)
-
 
     def build_grid(self):
         self.grid_container.size_x = len(self.level[0])
@@ -639,7 +633,13 @@ class LevelBuilder:
             grid_row = []
             for j in range(self.grid_container.size_x):
                 gridPoint = GridPoint(
-                    j, i, self.grid_container.zero_x, self.grid_container.zero_y, self.grid_container.tile_size, self.grid_container.wall_size, self.grid_container
+                    j,
+                    i,
+                    self.grid_container.zero_x,
+                    self.grid_container.zero_y,
+                    self.grid_container.tile_size,
+                    self.grid_container.wall_size,
+                    self.grid_container,
                 )
                 grid_row.append(gridPoint)
             self.grid_container.grid.append(grid_row)
@@ -653,7 +653,7 @@ class LevelBuilder:
                 single_letter = self.level[i][j]
                 if single_letter == "w":
                     entity_list.append(Wall(self.grid_container.grid[i][j]))
-                    self.grid_container.all_walls.append([j,i])
+                    self.grid_container.all_walls.append([j, i])
                 elif single_letter == "t":
                     entity_list.append(Tile(self.grid_container.grid[i][j]))
                 elif single_letter == "p":
@@ -670,21 +670,18 @@ class LevelBuilder:
 
                 for ent in entity_list:
                     self.grid_container.add_grid_entity(ent, j, i)
-                    #self.grid_container.entities.append(ent)
-                    #grid[i][j].add_entity(ent)
-                    #grid[i][j].set_grid_xy_to_world_xy(ent)
 
-        #Move goal to front layer
+        # Move goal to front layer
         for ent in self.grid_container.entities:
             if isinstance(ent, Goal):
                 self.grid_container.entities.remove(ent)
                 self.grid_container.entities.append(ent)
-        #Move enemies to front layer
+        # Move enemies to front layer
         for ent in self.grid_container.entities:
             if isinstance(ent, Enemy):
                 self.grid_container.entities.remove(ent)
                 self.grid_container.entities.append(ent)
-        #Move player to front layer
+        # Move player to front layer
         for ent in self.grid_container.entities:
             if isinstance(ent, Player):
                 self.grid_container.entities.remove(ent)

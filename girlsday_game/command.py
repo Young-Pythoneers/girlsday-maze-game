@@ -1,7 +1,8 @@
 from abc import ABC
+from typing import Tuple
 
 from girlsday_game.music import Music
-from typing import Tuple
+
 
 class Scope:
     def __init__(self, parent_scope):
@@ -43,7 +44,9 @@ class MoveLeftCommand(Command):
         Command.__init__(self)
 
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
-        entity.transition.define_transition(entity.entity_container.grid_x - 2, entity.entity_container.grid_y)
+        entity.transition.define_transition(
+            entity.entity_container.grid_x - 2, entity.entity_container.grid_y
+        )
         return True, True
 
 
@@ -52,32 +55,44 @@ class MoveRightCommand(Command):
         Command.__init__(self)
 
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
-        entity.transition.define_transition(entity.entity_container.grid_x + 2, entity.entity_container.grid_y)
+        entity.transition.define_transition(
+            entity.entity_container.grid_x + 2, entity.entity_container.grid_y
+        )
         return True, True
+
 
 class MoveUpCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
-        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y - 2)
+        entity.transition.define_transition(
+            entity.entity_container.grid_x, entity.entity_container.grid_y - 2
+        )
         return True, True
+
 
 class MoveDownCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
-        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y + 2)
+        entity.transition.define_transition(
+            entity.entity_container.grid_x, entity.entity_container.grid_y + 2
+        )
         return True, True
+
 
 class MoveInDirectionCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
-        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y + 2)
+        entity.transition.define_transition(
+            entity.entity_container.grid_x, entity.entity_container.grid_y + 2
+        )
         return True, True
+
 
 class MooCommand(Command):
     def __init__(self):
@@ -85,8 +100,11 @@ class MooCommand(Command):
 
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         Music.sound_handler("../sounds/moo.wav", 0)
-        entity.transition.define_transition(entity.entity_container.grid_x, entity.entity_container.grid_y)
+        entity.transition.define_transition(
+            entity.entity_container.grid_x, entity.entity_container.grid_y
+        )
         return True, True
+
 
 class VlaCommand(Command):
     def __init__(self):
@@ -96,6 +114,7 @@ class VlaCommand(Command):
         print("VlaCommand")
         return True, True
 
+
 class FlipCommand(Command):
     def __init__(self):
         Command.__init__(self)
@@ -104,6 +123,7 @@ class FlipCommand(Command):
         print("FlipCommand")
         return True, True
 
+
 class FloerpCommand(Command):
     def __init__(self):
         Command.__init__(self)
@@ -111,6 +131,7 @@ class FloerpCommand(Command):
     def do_command(self, entity, parent_scope) -> Tuple[bool, bool]:
         print("FloerpCommand")
         return True, True
+
 
 class LoopInfCommand(Command):
     def __init__(self):
@@ -127,6 +148,7 @@ class LoopInfCommand(Command):
                 self.command_pointer = 0
             if success:
                 return False, True
+
 
 class LoopForCommand(Command):
     def __init__(self, repeats):
@@ -152,6 +174,7 @@ class LoopForCommand(Command):
                 self.command_pointer = 0
             if success:
                 return False, True
+
 
 class LoopUntilBool(Command):
     def __init__(self, boolean_statement):
@@ -192,6 +215,7 @@ class IfCommand(Command):
             success = False
         return increment, success
 
+
 class IfElseCommand(Command):
     def __init__(self, boolean_statement):
         Command.__init__(self)
@@ -210,6 +234,7 @@ class IfElseCommand(Command):
             increment, success = command.do_command(entity)
         return increment, success
 
+
 class BooleanOperator:
     def __init__(self):
         self.children = []
@@ -217,37 +242,51 @@ class BooleanOperator:
     def add_child(self, command):
         self.children.append(command)
 
+
 class BooleanStatement:
     def is_true(self, entity, parent_scope):
         ...
+
 
 class WallOnLeft(BooleanStatement):
     def is_true(self, entity, parent_scope):
         grid_x = entity.entity_container.grid_x - 1
         grid_y = entity.entity_container.grid_y
-        left_neighbors = entity.entity_container.entity_container.grid[grid_y][grid_x].entities
+        left_neighbors = entity.entity_container.entity_container.grid[grid_y][
+            grid_x
+        ].entities
         return len(left_neighbors) > 0
+
 
 class WallOnRight(BooleanStatement):
     def is_true(self, entity, parent_scope):
         grid_x = entity.entity_container.grid_x + 1
         grid_y = entity.entity_container.grid_y
-        left_neighbors = entity.entity_container.entity_container.grid[grid_y][grid_x].entities
+        left_neighbors = entity.entity_container.entity_container.grid[grid_y][
+            grid_x
+        ].entities
         return len(left_neighbors) > 0
+
 
 class WallOnUp(BooleanStatement):
     def is_true(self, entity, parent_scope):
         grid_x = entity.entity_container.grid_x
         grid_y = entity.entity_container.grid_y - 1
-        left_neighbors = entity.entity_container.entity_container.grid[grid_y][grid_x].entities
+        left_neighbors = entity.entity_container.entity_container.grid[grid_y][
+            grid_x
+        ].entities
         return len(left_neighbors) > 0
+
 
 class WallOnDown(BooleanStatement):
     def is_true(self, entity, parent_scope):
         grid_x = entity.entity_container.grid_x
         grid_y = entity.entity_container.grid_y + 1
-        left_neighbors = entity.entity_container.entity_container.grid[grid_y][grid_x].entities
+        left_neighbors = entity.entity_container.entity_container.grid[grid_y][
+            grid_x
+        ].entities
         return len(left_neighbors) > 0
+
 
 class BooleanAnd(BooleanOperator, BooleanStatement):
     def __init__(self):
@@ -255,7 +294,10 @@ class BooleanAnd(BooleanOperator, BooleanStatement):
         BooleanStatement.__init__(self)
 
     def is_true(self, entity, parent_scope):
-        return self.children[0].is_true(entity, parent_scope) and self.children[1].is_true(entity, parent_scope)
+        return self.children[0].is_true(entity, parent_scope) and self.children[
+            1
+        ].is_true(entity, parent_scope)
+
 
 class BooleanOr(BooleanOperator, BooleanStatement):
     def __init__(self):
@@ -263,7 +305,10 @@ class BooleanOr(BooleanOperator, BooleanStatement):
         BooleanStatement.__init__(self)
 
     def is_true(self, entity, parent_scope):
-        return self.children[0].is_true(entity, parent_scope) or self.children[1].is_true(entity, parent_scope)
+        return self.children[0].is_true(entity, parent_scope) or self.children[
+            1
+        ].is_true(entity, parent_scope)
+
 
 class BooleanNot(BooleanOperator, BooleanStatement):
     def __init__(self):
@@ -298,6 +343,7 @@ class CommandFactory:
 
         program.add_child(loop)
         return program
+
 
 if __name__ == "__main__":
     entity = None
