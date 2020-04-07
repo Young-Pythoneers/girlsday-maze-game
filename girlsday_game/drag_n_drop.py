@@ -43,6 +43,16 @@ key_list.add(Key(down))
 key_list.add(Key(left))
 key_list.add(Key(right))
 
+for key in key_list:
+    print(key.__dict__.keys())
+    print(key._Sprite__g)
+    print(key.image)
+    print(key.clicked)
+    print(key.rect)
+    print(key.id)
+    print()
+exit()
+
 
 
 while not done:

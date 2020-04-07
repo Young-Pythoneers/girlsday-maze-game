@@ -672,17 +672,35 @@ class LevelBuilder:
                     self.grid_container.add_grid_entity(ent, j, i)
 
         # Move goal to front layer
-        for ent in self.grid_container.entities:
-            if isinstance(ent, Goal):
-                self.grid_container.entities.remove(ent)
-                self.grid_container.entities.append(ent)
+        i = 0
+        stop = len(self.grid_container.entities)
+        while i < stop:
+            if isinstance(self.grid_container.entities[i], Goal):
+                temp_ent = self.grid_container.entities[i]
+                self.grid_container.entities.remove(temp_ent)
+                self.grid_container.entities.append(temp_ent)
+                stop -= 1
+            else:
+                i += 1
         # Move enemies to front layer
-        for ent in self.grid_container.entities:
-            if isinstance(ent, Enemy):
-                self.grid_container.entities.remove(ent)
-                self.grid_container.entities.append(ent)
+        i = 0
+        stop = len(self.grid_container.entities)
+        while i < stop:
+            if isinstance(self.grid_container.entities[i], Enemy):
+                temp_ent = self.grid_container.entities[i]
+                self.grid_container.entities.remove(temp_ent)
+                self.grid_container.entities.append(temp_ent)
+                stop -= 1
+            else:
+                i += 1
         # Move player to front layer
-        for ent in self.grid_container.entities:
-            if isinstance(ent, Player):
-                self.grid_container.entities.remove(ent)
-                self.grid_container.entities.append(ent)
+        i = 0
+        stop = len(self.grid_container.entities)
+        while i < stop:
+            if isinstance(self.grid_container.entities[i], Player):
+                temp_ent = self.grid_container.entities[i]
+                self.grid_container.entities.remove(temp_ent)
+                self.grid_container.entities.append(temp_ent)
+                stop -= 1
+            else:
+                i += 1
