@@ -58,10 +58,12 @@ while not done:
                 for key in key_list:
                     if key.rect.collidepoint(pos):
                         key.clicked = True
+                        pygame.sprite.Sprite.remove(key)
+                        print(key_list)
 
         if event.type == pygame.MOUSEBUTTONUP:
-            if pos[0] > 100:
-                key_list.add(Key(up))
+            # if pos[0] > 100:
+            #     key_list.add(Key(up))
 
             for key in key_list:
                 key.clicked = False
