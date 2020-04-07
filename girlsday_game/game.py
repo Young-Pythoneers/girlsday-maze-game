@@ -20,15 +20,15 @@ class Game:
         self.music = Music(self)
         self.collisions = Collisions(self)
         self.physics = Physics(self)
-        goal = Goal()
-        self.grid.add_grid_entity(goal, 3, 1)
+        #goal = Goal()
+        #self.grid.add_grid_entity(goal, 3, 1)
 
         score = Score()
         self.grid.add_grid_entity(score, 1, 1)
-        player = Player()
-        self.grid.add_grid_entity(player, 1, 1)
-        enemy = Enemy(player)
-        self.grid.add_grid_entity(enemy, 11, 5)
+        #player = Player()
+        #self.grid.add_grid_entity(player, 1, 1)
+        #enemy = Enemy(player)
+        #self.grid.add_grid_entity(enemy, 11, 5)
 
     def run(self):
 

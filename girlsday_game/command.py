@@ -112,7 +112,7 @@ class FloerpCommand(Command):
         print("FloerpCommand")
         return True, True
 
-class InfLoopCommand(Command):
+class LoopInfCommand(Command):
     def __init__(self):
         Command.__init__(self)
 
@@ -128,7 +128,7 @@ class InfLoopCommand(Command):
             if success:
                 return False, True
 
-class LoopCommand(Command):
+class LoopForCommand(Command):
     def __init__(self, repeats):
         Command.__init__(self)
         self.repeats = repeats
@@ -277,7 +277,7 @@ class BooleanNot(BooleanOperator, BooleanStatement):
 class CommandFactory:
     def make_enemy_program(self):
         program = Program()
-        loop = InfLoopCommand()
+        loop = LoopInfCommand()
 
         loop_until_right = LoopUntilBool(WallOnRight())
         loop_until_right.add_child(MoveRightCommand())
@@ -303,11 +303,11 @@ if __name__ == "__main__":
     entity = None
     program = Program()
 
-    loop = LoopCommand(2)
+    loop = LoopForCommand(2)
 
     loop.add_child(VlaCommand())
 
-    loop2 = LoopCommand(3)
+    loop2 = LoopForCommand(3)
     loop2.add_child(FlipCommand())
 
     loop.add_child(loop2)

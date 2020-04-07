@@ -480,10 +480,11 @@ class GridContainer:
         self.input_timer = Timer(0)
         self.timer_container.append(self.input_timer)  # can be removed in future
 
-        file_name = None
+        file_name = '../levels/lvl5.txt'
         self.level_builder = LevelBuilder(self)
         self.level_builder.load_level(file_name)
-        self.grid = self.level_builder.build_grid()
+        self.grid = []
+        self.level_builder.build_grid()
 
 
     def add_grid_entity(self, ent, grid_x, grid_y):
@@ -609,19 +610,24 @@ class LevelBuilder:
 
 
     def load_level(self, file_name: str):
-        self.level = np.array(
-            [
-                "wwwwwwwwwwwwwww",
-                "wtntntntntntntw",
-                "wnwwwwwnwwwwwnw",
-                "wtwtntntwtntwtw",
-                "wnwnwwwwwwwnwnw",
-                "wtntwtntntntwtw",
-                "wnnnwwwwwnnnwnw",
-                "wtntntntntntntw",
-                "wwwwwwwwwwwwwww",
-            ]
-        )
+        self.level = []
+        with open(file_name) as f:
+            for line in f:
+                self.level.append(line.rstrip())
+        #self.level = np.array(
+        #    [
+        #        "wwwwwwwwwwwwwww",
+        #        "wtntntntntntntw",
+        #        "wnwwwwwnwwwwwnw",
+        #        "wtwtntntwtntwtw",
+        #        "wnwnwwwwwwwnwnw",
+        #        "wtntwtntntntwtw",
+        #        "wnnnwwwwwnnnwnw",
+        #        "wtntntntntntntw",
+        #        "wwwwwwwwwwwwwww",
+        #    ]
+        #)
+        print(self.level)
 
 
     def build_grid(self):
@@ -629,7 +635,6 @@ class LevelBuilder:
         self.grid_container.size_y = len(self.level)
 
         # Create the grid
-        grid = []
         for i in range(self.grid_container.size_y):
             grid_row = []
             for j in range(self.grid_container.size_x):
@@ -637,27 +642,50 @@ class LevelBuilder:
                     j, i, self.grid_container.zero_x, self.grid_container.zero_y, self.grid_container.tile_size, self.grid_container.wall_size, self.grid_container
                 )
                 grid_row.append(gridPoint)
-            grid.append(grid_row)
+            self.grid_container.grid.append(grid_row)
 
         self.grid_container.all_walls = []
 
         # Fill the grid with Tiles and Walls
         for i in range(len(self.level)):
             for j in range(len(self.level[i])):
+                entity_list = []
                 single_letter = self.level[i][j]
-                add_entity = False
                 if single_letter == "w":
-                    add_entity = True
-                    ent = Wall(grid[i][j])
+                    entity_list.append(Wall(self.grid_container.grid[i][j]))
                     self.grid_container.all_walls.append([j,i])
                 elif single_letter == "t":
-                    add_entity = True
-                    ent = Tile(grid[i][j])
+                    entity_list.append(Tile(self.grid_container.grid[i][j]))
+                elif single_letter == "p":
+                    entity_list.append(Tile(self.grid_container.grid[i][j]))
+                    entity_list.append(Player(self.grid_container.grid[i][j]))
+                elif single_letter == "e":
+                    entity_list.append(Tile(self.grid_container.grid[i][j]))
+                    entity_list.append(Enemy(self.grid_container.grid[i][j]))
+                elif single_letter == "g":
+                    entity_list.append(Tile(self.grid_container.grid[i][j]))
+                    entity_list.append(Goal(self.grid_container.grid[i][j]))
                 elif single_letter == "n":
                     pass
 
-                if add_entity:
-                    self.grid_container.entities.append(ent)
-                    grid[i][j].add_entity(ent)
-                    grid[i][j].set_grid_xy_to_world_xy(ent)
-        return grid
+                for ent in entity_list:
+                    self.grid_container.add_grid_entity(ent, j, i)
+                    #self.grid_container.entities.append(ent)
+                    #grid[i][j].add_entity(ent)
+                    #grid[i][j].set_grid_xy_to_world_xy(ent)
+
+        #Move goal to front layer
+        for ent in self.grid_container.entities:
+            if isinstance(ent, Goal):
+                self.grid_container.entities.remove(ent)
+                self.grid_container.entities.append(ent)
+        #Move enemies to front layer
+        for ent in self.grid_container.entities:
+            if isinstance(ent, Enemy):
+                self.grid_container.entities.remove(ent)
+                self.grid_container.entities.append(ent)
+        #Move player to front layer
+        for ent in self.grid_container.entities:
+            if isinstance(ent, Player):
+                self.grid_container.entities.remove(ent)
+                self.grid_container.entities.append(ent)
