@@ -23,8 +23,5 @@ class Display:
         # Draw the background
         self.screen.blit(self.background, [0, 0])
         for ent in entities:
-            # Translate the image so it is centered on the center of the Entity
-            x, y = ent.give_center_xy()
-            # Then draw it
-            self.screen.blit(ent.image, [x, y])
+            ent.draw(self.screen)
         pygame.display.update()

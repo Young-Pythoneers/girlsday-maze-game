@@ -31,6 +31,12 @@ class Entity:
         y = self.y - self.y_size / 2
         return x, y
 
+    def draw(self, screen):
+        # Translate the image so it is centered on the center of the Entity
+        x, y = self.give_center_xy()
+        # Then draw it
+        screen.blit(self.image, [x, y])
+
 
 class Commandable:
     def __init__(self):
