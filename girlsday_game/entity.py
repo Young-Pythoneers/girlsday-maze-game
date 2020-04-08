@@ -171,10 +171,9 @@ class Player(Collider, GridMover):
                 self.entity_container.entity_container.add_entity(dead_player)
                 dead_player.x = self.x
                 dead_player.y = self.y
-                self.entity_container.entity_container.move_grid_entity(self, 1, 1)
-                self.entity_container.set_grid_xy_to_world_xy(self)
-                self.transition.define_transition(1, 1)
-                self.entity_container.entity_container.game.reset()
+                self.entity_container.entity_container.we_lost = True
+                self.entity_container.entity_container.remove_grid_entity(self)
+                return
         self._impulse_list = []
         self._collisions = []
 
@@ -239,15 +238,16 @@ class Goal(Collider, GridMover):
         for coll in self._collisions:
             if isinstance(coll, Player) or isinstance(coll, Enemy):
                 if isinstance(coll, Player):
-                    self.entity_container.entity_container.game.load_next_level()
+                    self.entity_container.entity_container.we_won = True
                     self.entity_container.entity_container.score.score += 1
                 else:  # if isinstance(coll, Enemy)
                     self.entity_container.entity_container.score.score -= 100
                     Music.sound_handler("../sounds/evil_laugh.wav", 0)
+                    self.entity_container.entity_conainer.we_lost = True
                 Music.sound_handler("../sounds/munch.wav", 0)
                 self.__make_explosion()
-                self.__respawn()
-                self.entity_container.set_grid_xy_to_world_xy(self)
+                self.entity_container.entity_container.remove_grid_entity(self)
+                return
         self._impulse_list = []
         self._collisions = []
 
@@ -493,6 +493,8 @@ class GridContainer:
         self.timer_container.append(self.transition_timer)
         self.in_transition = False  # Are we in a transition state?
         self.play = False  # Do we play all commands in the player's queue?
+        self.we_won = False
+        self.we_lost = False
         self.player = None  # can be removed in future
         self.score = None
         self.input_cooldown = 0.1  # can be removed in future
@@ -596,6 +598,11 @@ class Grid(EntityContainer, GridContainer):
             # Set the input_cooldown_timer to better separate individual key presses
             self.input_timer = Timer(self.input_cooldown)
             self.timer_container.append(self.input_timer)
+
+        if self.we_won and event_listener.K_SPACE:
+            self.game.load_next_level()
+        if self.we_lost and event_listener.K_SPACE:
+            self.game.reset()
 
         # Check if we did not allready start a transition and we are in play mode.
         # If the space bar is pressed when not in a transition, we want to start the play mode.
