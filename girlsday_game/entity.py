@@ -605,6 +605,8 @@ class Grid(EntityContainer, GridContainer):
             self.input_timer = Timer(self.input_cooldown)
             self.timer_container.append(self.input_timer)
 
+        if self.we_won or self.we_lost:
+            self.play = False
         if self.we_won and event_listener.K_SPACE:
             self.game.load_next_level()
         if self.we_lost and event_listener.K_SPACE:
@@ -642,6 +644,14 @@ class LevelBuilder:
         self.grid_container.size_x = len(self.level[0])
         self.grid_container.size_y = len(self.level)
 
+        self.initialize_grid()
+        self.fill_grid()
+
+        self.move_type_to_front(Goal)
+        self.move_type_to_front(Enemy)
+        self.move_type_to_front(Player)
+
+    def initialize_grid(self):
         # Create the grid
         for i in range(self.grid_container.size_y):
             grid_row = []
@@ -658,8 +668,8 @@ class LevelBuilder:
                 grid_row.append(gridPoint)
             self.grid_container.grid.append(grid_row)
 
+    def fill_grid(self):
         self.grid_container.all_walls = []
-
         # Fill the grid with Tiles and Walls
         for i in range(len(self.level)):
             for j in range(len(self.level[i])):
@@ -685,33 +695,11 @@ class LevelBuilder:
                 for ent in entity_list:
                     self.grid_container.add_grid_entity(ent, j, i)
 
-        # Move goal to front layer
+    def move_type_to_front(self, type):
         i = 0
         stop = len(self.grid_container.entities)
         while i < stop:
-            if isinstance(self.grid_container.entities[i], Goal):
-                temp_ent = self.grid_container.entities[i]
-                self.grid_container.entities.remove(temp_ent)
-                self.grid_container.entities.append(temp_ent)
-                stop -= 1
-            else:
-                i += 1
-        # Move enemies to front layer
-        i = 0
-        stop = len(self.grid_container.entities)
-        while i < stop:
-            if isinstance(self.grid_container.entities[i], Enemy):
-                temp_ent = self.grid_container.entities[i]
-                self.grid_container.entities.remove(temp_ent)
-                self.grid_container.entities.append(temp_ent)
-                stop -= 1
-            else:
-                i += 1
-        # Move player to front layer
-        i = 0
-        stop = len(self.grid_container.entities)
-        while i < stop:
-            if isinstance(self.grid_container.entities[i], Player):
+            if isinstance(self.grid_container.entities[i], type):
                 temp_ent = self.grid_container.entities[i]
                 self.grid_container.entities.remove(temp_ent)
                 self.grid_container.entities.append(temp_ent)
