@@ -6,11 +6,13 @@ import numpy as np
 class Transition(ABC):
     def __init__(self, entity):
         self.entity = entity
-        self.transition_function = None
         self.transition_start_x = 0
         self.transition_start_y = 0
         self.transition_stop_x = 0
         self.transition_stop_y = 0
+
+    def transition_function(self, x):
+        ...
 
     def transition(self, event_listener, timer_container):
         time_fraction = (
@@ -54,19 +56,24 @@ class Transition(ABC):
 class LinearTransition(Transition):
     def __init__(self, entity):
         Transition.__init__(self, entity)
-        self.transition_function = lambda x: x
+
+    def transition_function(self, x):
+        return x
 
 
 class CosTransition(Transition):
     def __init__(self, entity):
         Transition.__init__(self, entity)
-        self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
 
+    def transition_function(self, x):
+        return -np.cos(np.pi * x / 2) + 1
 
 class WobblyTransition(Transition):
     def __init__(self, entity):
         Transition.__init__(self, entity)
-        self.transition_function = lambda x: -np.cos(np.pi * x / 2) + 1
+
+    def transition_function(self, x):
+        return -np.cos(np.pi * x / 2) + 1
 
     def transition(self, event_listener, timer_container):
         time_fraction = (
@@ -87,7 +94,9 @@ class WobblyTransition(Transition):
 class InstantTransition(Transition):
     def __init__(self, entity):
         Transition.__init__(self, entity)
-        self.transition_function = None
+
+    def transition_function(self, x):
+        return 1.0
 
     def transition(self, event_listener, timer_container):
         time_fraction = (
