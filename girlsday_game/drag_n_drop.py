@@ -86,12 +86,10 @@ while not done:
                 key.clicked = False
             # drag_id = 0
         if event.type == pygame.MOUSEBUTTONDOWN:
-            pos = pygame.mouse.get_pos()
-            x = pos[0]
-            y = pos[1]
+            mouse_x, mouse_y = pygame.mouse.get_pos()
             if event.button == 1:
                 for key in key_list[::-1]:
-                    if key.rect.collidepoint(pos):
+                    if key.rect.collidepoint((mouse_x, mouse_y)):
                         key.clicked = True
                         key_list.remove(key)
                         key_list.append(key)
