@@ -708,6 +708,73 @@ class LevelBuilder:
                 i += 1
 
 
+class Clickable:
+    def __init__(self, id):
+        self.clicked = False
+        self.id = id
+
+
+class CommandBlock(Clickable, Entity, Updateable):
+    def __init__(self, id, entity_container = None):
+        Clickable.__init__(self, id)
+        Entity.__init__(self, entity_container)
+        Updateable.__init__(self)
+
+
+    def update(self, event_listener):
+        if self.clicked:
+            print("Hi, I am clicked")
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            self.x, self.y = mouse_x, mouse_y
+            px = mouse_x - (self.rect.width / 2)
+            py = mouse_y - (self.rect.height / 2)
+            self.rect.x = px
+            self.rect.y = py
+
+
+class UpBlock(CommandBlock):
+    def __init__(self, id, entity_container=None):
+        CommandBlock.__init__(self, id, entity_container)
+        self.x = 900
+        self.y = 50
+        self.image = pygame.image.load("../images/buttons/up.png")
+        self.x_size = self.image.get_size()[1]
+        self.y_size = self.image.get_size()[0]
+        self.rect = self.image.get_rect()#TODO LSP violation
+        self.rect.x = self.x - (self.rect.width / 2)
+        self.rect.y = self.y - (self.rect.width / 2)
+
+
+class CommandBlockFactory(CommandBlock):
+    def __init__(self, id, max_blocks, entity_container=None):
+        CommandBlock.__init__(self, id, entity_container)
+        self.x = 900
+        self.y = 50
+        self.image = pygame.image.load("../images/buttons/up.png")
+        self.x_size = self.image.get_size()[1]
+        self.y_size = self.image.get_size()[0]
+        self.rect = self.image.get_rect()  # TODO LSP violation
+        self.rect.x = self.x - (self.rect.width / 2)
+        self.rect.y = self.y - (self.rect.width / 2)
+        self.max_blocks = max_blocks
+
+        self.font = pygame.font.Font("freesansbold.ttf", 32)
+        self.text = self.font.render(str(self.max_blocks), True, (200, 255, 255))
+
+    def update(self, event_listener):
+        if self.clicked and self.max_blocks > 0:
+            block = UpBlock(1, self.entity_container)
+            block.clicked = True
+            self.clicked = False
+            self.entity_container.add_entity(block)
+            self.max_blocks -= 1
+            self.text = self.font.render(str(self.max_blocks), True, (200, 255, 255))
+
+    def draw(self, screen):
+        screen.blit(self.image, [self.rect[0], self.rect[1]])
+        screen.blit(self.text, [self.rect[0], self.rect[1]])
+
+
 class GridBackGround(Entity):
     def __init__(self, entity_container):
         Entity.__init__(self, entity_container)
@@ -723,4 +790,23 @@ class GridBackGround(Entity):
 class Gui(EntityContainer):
     def __init__(self):
         EntityContainer.__init__(self)
-        self.entities.append(GridBackGround(self))
+        self.add_entity(GridBackGround(self))
+        self.add_entity(CommandBlockFactory(0, 42, self))
+
+    def update_entities(self, event_listener):
+        if event_listener.MOUSEBUTTONUP:
+            for ent in self.entities:
+                ent.clicked = False
+        if event_listener.MOUSEBUTTONDOWN:
+            print("clicked in gui")
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            if event_listener.down_button == 1:
+                for ent in self.entities[::-1]:
+                    if isinstance(ent, Clickable) and ent.rect.collidepoint((mouse_x, mouse_y)):
+                        ent.clicked = True
+                        self.entities.remove(ent)
+                        self.entities.append(ent)
+                        break
+        for ent in self.entities:
+            if isinstance(ent, Updateable):
+                ent.update(event_listener)

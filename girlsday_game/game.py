@@ -62,6 +62,7 @@ class Game:
                 self.grid.entities, self.event_listener, self.timer_container
             )
             self.grid.update_entities(self.event_listener)
+            self.gui.update_entities(self.event_listener)
             self.display.draw_screen(self.grid.entities + self.gui.entities)
             self.timer_container.update_timers()
 
