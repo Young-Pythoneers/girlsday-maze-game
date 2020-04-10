@@ -11,14 +11,13 @@ from girlsday_game.entity import (
     Particle,
     PhysicalEntity,
     Player,
-    Rocket,
-    RocketDuck,
     Score,
     Tile,
     Transitional,
     Wall,
 )
 from girlsday_game.timer import TimerContainer
+from girlsday_game.game import Game
 
 
 def test_entity():
@@ -48,13 +47,13 @@ def test_wall():
 
 def test_player():
     pygame.init()
-    Player(Goal(), Score())
+    Player()
     assert True
 
 
 def test_enemy():
     pygame.init()
-    Enemy(Player(Goal(), Score()))
+    Enemy()
     assert True
 
 
@@ -75,17 +74,8 @@ def test_physical_entity():
 
 
 def test_particle():
-    Particle(0, 0, 0, 0, TimerContainer())
-    assert True
-
-
-def test_rocket():
-    Rocket(0, 0, 0, 0)
-    assert True
-
-
-def test_rocket_duck():
-    RocketDuck(0, 0, 0, 0)
+    game = Game()
+    Particle(0, 0, 0, 0, game.grid)
     assert True
 
 
@@ -95,10 +85,10 @@ def test_entity_keeper():
 
 
 def test_grid_point():
-    GridPoint(EntityContainer, 0, 0, 0, 0, 0, 0)
+    GridPoint( 0, 0, 0, 0, 0, 0, EntityContainer())
     assert True
 
 
 def test_grid():
-    Grid(TimerContainer())
+    Grid(TimerContainer(),"../levels/lvl1.txt", Game())
     assert True
