@@ -19,10 +19,10 @@ class Transition(ABC):
             self.entity.entity_container.entity_container.transition_timer.timer
             / self.entity.entity_container.entity_container.transition_timer.timer_duration
         )
-        self.entity.x = self.transition_start_x + (
+        self.entity.rect.centerx = self.transition_start_x + (
             self.transition_stop_x - self.transition_start_x
         ) * self.transition_function(time_fraction)
-        self.entity.y = self.transition_start_y + (
+        self.entity.rect.centery = self.transition_start_y + (
             self.transition_stop_y - self.transition_start_y
         ) * self.transition_function(time_fraction)
 
@@ -43,7 +43,7 @@ class Transition(ABC):
         self.entity.entity_container.entity_container.move_grid_entity(
             self.entity, grid_destination_x, grid_destination_y
         )
-        self.transition_start_x, self.transition_start_y = self.entity.x, self.entity.y
+        self.transition_start_x, self.transition_start_y = self.entity.rect.centerx, self.entity.rect.centery
         # Calculate the destination in world coordinates
         (
             self.transition_stop_x,
@@ -80,10 +80,10 @@ class WobblyTransition(Transition):
             self.entity.entity_container.entity_container.transition_timer.timer
             / self.entity.entity_container.entity_container.transition_timer.timer_duration
         )
-        self.entity.x = self.transition_start_x + (
+        self.entity.rect.centerx = self.transition_start_x + (
             self.transition_stop_x - self.transition_start_x
         ) * self.transition_function(time_fraction)
-        self.entity.y = (
+        self.entity.rect.centery = (
             self.transition_start_y
             + (self.transition_stop_y - self.transition_start_y)
             * self.transition_function(time_fraction)
@@ -99,9 +99,5 @@ class InstantTransition(Transition):
         return 1.0
 
     def transition(self, event_listener, timer_container):
-        time_fraction = (
-            self.entity.entity_container.entity_container.transition_timer.timer
-            / self.entity.entity_container.entity_container.transition_timer.timer_duration
-        )
-        self.entity.x = self.transition_stop_x
-        self.entity.y = self.transition_stop_y
+        self.entity.rect.centerx = self.transition_stop_x
+        self.entity.rect.centery = self.transition_stop_y

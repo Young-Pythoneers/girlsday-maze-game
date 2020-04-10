@@ -45,11 +45,11 @@ class Physics:
                     1 + (self.friction * timer_keeper.time_passed) / ent.mass
                 )
                 if (
-                    ent.y <= self.game.display.screen_size_y - ent.y_size
+                    ent.rect.bottom <= self.game.display.screen_size_y
                 ):  # This if statement fixes weird behaviour at the screen's bottom.
                     # Apply gravity
                     ent.impulse_y += self.gravity * ent.mass * timer_keeper.time_passed
                 # Update the Entity's position acording to its impulse (kinetic energy) and mass.
                 # The higher the mass, the more impulse is needed for movement.
-                ent.x += ent.impulse_x / ent.mass
-                ent.y += ent.impulse_y / ent.mass
+                ent.rect.centerx += ent.impulse_x / ent.mass
+                ent.rect.centery += ent.impulse_y / ent.mass

@@ -20,22 +20,12 @@ from girlsday_game.transition import CosTransition, InstantTransition, WobblyTra
 class Entity:
     def __init__(self, entity_container: EntityContainer = None):
         self.entity_container = entity_container
-        self.x = 0
-        self.y = 0
         self.image = None
-        self.x_size = 0
-        self.y_size = 0
+        self.rect = None
 
-    def give_center_xy(self):
-        x = self.x - self.x_size / 2
-        y = self.y - self.y_size / 2
-        return x, y
 
     def draw(self, screen):
-        # Translate the image so it is centered on the center of the Entity
-        x, y = self.give_center_xy()
-        # Then draw it
-        screen.blit(self.image, [x, y])
+        screen.blit(self.image, [self.rect.left, self.rect.top])
 
 
 class Commandable:
@@ -88,8 +78,10 @@ class Collider:
 
 class Physical:
     def __init__(self, x, y, impulse_x, impulse_y):
-        self.x = x
-        self.y = y
+        self.image = None
+        self.rect = pygame.Rect(0,0,1,1)
+        self.rect.centerx = x
+        self.rect.centery = y
         self.impulse_x = impulse_x
         self.impulse_y = impulse_y
         self.speed = 0
@@ -106,8 +98,7 @@ class Tile(Entity):
         Entity.__init__(self, entity_container)
         self.image = pygame.Surface((50, 50))
         self.image.fill((255, 0, 0))
-        self.x_size = 50
-        self.y_size = 50
+        self.rect = self.image.get_rect()
 
 
 class Wall(Collider, Entity):
@@ -136,8 +127,7 @@ class Wall(Collider, Entity):
                 depth = 60
         self.image = pygame.Surface((width, depth))
         self.image.fill((150, 150, 0))
-        self.x_size = width
-        self.y_size = depth
+        self.rect = self.image.get_rect()
 
     def update(self, event_listener):
         pass
@@ -156,8 +146,7 @@ class Player(Collider, GridMover):
         Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/sized_turtle.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
+        self.rect = self.image.get_rect()
 
         # variables to track the transition
         self.transition = WobblyTransition(self)
@@ -175,8 +164,8 @@ class Player(Collider, GridMover):
                 Music.sound_handler("../sounds/wilhelm_scream.wav", 0)
                 dead_player = DeadPlayer()
                 self.entity_container.entity_container.add_entity(dead_player)
-                dead_player.x = self.x
-                dead_player.y = self.y
+                dead_player.rect.centerx = self.rect.centerx
+                dead_player.rect.centery = self.rect.centery
                 self.entity_container.entity_container.we_lost = True
                 self.entity_container.entity_container.remove_grid_entity(self)
                 return
@@ -196,17 +185,14 @@ class DeadPlayer(Entity):
     def __init__(self, entity_container: EntityContainer = None):
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/skull.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
-
+        self.rect = self.image.get_rect()
 
 class Enemy(Collider, GridMover):
     def __init__(self, entity_container: EntityContainer = None):
         Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/minotaur.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
+        self.rect = self.image.get_rect()
 
         # variables to track the transition
         self.transition = CosTransition(self)
@@ -233,8 +219,7 @@ class Goal(Collider, GridMover):
         Collider.__init__(self)
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/lettuce.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
+        self.rect = self.image.get_rect()
         self._does_not_collide_with = [Wall]
 
     def begin_transition(self):
@@ -262,8 +247,8 @@ class Goal(Collider, GridMover):
             angle = uniform(0, 2 * np.pi)
             magnitude = uniform(4, 6)
             particle = Particle(
-                self.x,
-                self.y,
+                self.rect.centerx,
+                self.rect.centery,
                 np.cos(angle) * magnitude,
                 np.sin(angle) * magnitude,
                 self.entity_container.entity_container,
@@ -293,13 +278,12 @@ class Goal(Collider, GridMover):
 class Score(Entity, Updateable):
     def __init__(self, entity_container: EntityContainer = None):
         GridMover.__init__(self, entity_container)
-        self.x = 10
-        self.y = 10
         self.score = 0
         self.font = pygame.font.Font("freesansbold.ttf", 32)
         self.image = self.font.render("Score : " + str(self.score), True, (0, 0, 0))
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
+        self.rect = self.image.get_rect()
+        self.rect.left = 0
+        self.rect.top = 0
 
     def update(self, event_listener):
         score = self.font.render("Score : " + str(self.score), True, (0, 0, 0))
@@ -314,8 +298,6 @@ class PhysicalEntity(Collider, Entity, Physical, Updateable):
         Entity.__init__(self, entity_container)
         Physical.__init__(self, x, y, impulse_x, impulse_y)
         Updateable.__init__(self)
-        self.x = x
-        self.y = y
 
     def update(self, event_listener):
         pass
@@ -330,8 +312,9 @@ class Particle(Destructable, PhysicalEntity):
         self.speed = 0
         self.mass = 1
         self.image = pygame.image.load("../images/explosion.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.centery = y
         self.timer = Timer(1 + uniform(-0.2, 0.2))
         self.entity_container.timer_container.append(self.timer)
         self._does_not_collide_with = [Enemy, Particle, Player]
@@ -340,77 +323,6 @@ class Particle(Destructable, PhysicalEntity):
         self.impulse_x += self.speed * self.entity_container.timer_container.time_passed
         if self.timer.check_timer():
             self.destroy()
-
-
-class Rocket(Destructable, PhysicalEntity):
-    def __init__(
-        self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None
-    ):
-        Destructable.__init__(self)
-        PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
-        self.speed = 40
-        self.mass = 1
-        self.image = pygame.image.load("../images/pizza-box.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
-        self.particle_count = 20
-        self.spread = 20
-        self.impulse_modifier = 1
-        self.impulse_multiplier = 0.1
-
-    def update(self, event_listener, timer_container: TimerContainer):
-        # self.update_collisions()#TODO handle this according to commented code
-        # if self.collided:
-        #    self.make_particles(timer_container)
-        #    self.destroy()
-        #    self.collided = False
-        self.impulse_x += self.speed * timer_container.time_passed
-
-    def destroy(self):
-        self.entity_container.remove_entity(self)
-
-    def make_particles(self, timer_container: TimerContainer):
-        for i in range(self.particle_count):
-            self.entity_container.add_entity(
-                Particle(
-                    self.x + uniform(-self.spread, self.spread),
-                    self.y + uniform(-self.spread, self.spread),
-                    self.impulse_x * self.impulse_multiplier
-                    + uniform(-self.impulse_modifier, self.impulse_modifier),
-                    self.impulse_y * self.impulse_multiplier
-                    + uniform(
-                        -self.impulse_modifier,
-                        self.impulse_modifier,
-                        timer_container,
-                        self.entity_container,
-                    ),
-                )
-            )
-
-
-class RocketDuck(PhysicalEntity):
-    def __init__(
-        self, x, y, impulse_x, impulse_y, entity_container: EntityContainer = None
-    ):
-        PhysicalEntity.__init__(self, x, y, impulse_x, impulse_y, entity_container)
-        self.speed = 20
-        self.mass = 1
-        self.image = pygame.image.load("../images/rocket_duck.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
-        self.angle = 3 * np.pi / 2
-        self.turn_speed = 50
-
-    def update(self, event_listener, timer_container: TimerContainer):
-        self.angle += (
-            self.turn_speed * np.random.uniform(-1, 1) * timer_container.time_passed
-        )
-        if self.angle < 0:
-            self.angle += 2 * np.pi
-        if self.angle > 2 * np.pi:
-            self.angle -= 2 * np.pi
-        self.impulse_x += np.cos(self.angle) * self.speed * timer_container.time_passed
-        self.impulse_y += np.sin(self.angle) * self.speed * timer_container.time_passed
 
 
 class EntityContainer:
@@ -464,7 +376,7 @@ class GridPointInfo:
         return x, y
 
     def set_grid_xy_to_world_xy(self, ent):
-        ent.x, ent.y = self.grid_xy_to_world_xy(self.grid_x, self.grid_y)
+        ent.rect.centerx, ent.rect.centery = self.grid_xy_to_world_xy(self.grid_x, self.grid_y)
 
 
 class GridPoint(EntityContainer, GridPointInfo):
@@ -724,38 +636,25 @@ class CommandBlock(Clickable, Entity, Updateable):
     def update(self, event_listener):
         if self.clicked:
             print("Hi, I am clicked")
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            self.x, self.y = mouse_x, mouse_y
-            px = mouse_x - (self.rect.width / 2)
-            py = mouse_y - (self.rect.height / 2)
-            self.rect.x = px
-            self.rect.y = py
+            self.rect.centerx, self.rect.centery = pygame.mouse.get_pos()
 
 
 class UpBlock(CommandBlock):
     def __init__(self, id, entity_container=None):
         CommandBlock.__init__(self, id, entity_container)
-        self.x = 900
-        self.y = 50
         self.image = pygame.image.load("../images/buttons/up.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
-        self.rect = self.image.get_rect()#TODO LSP violation
-        self.rect.x = self.x - (self.rect.width / 2)
-        self.rect.y = self.y - (self.rect.width / 2)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = 900
+        self.rect.centery = 50
 
 
 class CommandBlockFactory(CommandBlock):
     def __init__(self, id, max_blocks, entity_container=None):
         CommandBlock.__init__(self, id, entity_container)
-        self.x = 900
-        self.y = 50
         self.image = pygame.image.load("../images/buttons/up.png")
-        self.x_size = self.image.get_size()[1]
-        self.y_size = self.image.get_size()[0]
-        self.rect = self.image.get_rect()  # TODO LSP violation
-        self.rect.x = self.x - (self.rect.width / 2)
-        self.rect.y = self.y - (self.rect.width / 2)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = 900
+        self.rect.centery = 50
         self.max_blocks = max_blocks
 
         self.font = pygame.font.Font("freesansbold.ttf", 32)
@@ -775,22 +674,21 @@ class CommandBlockFactory(CommandBlock):
         screen.blit(self.text, [self.rect[0], self.rect[1]])
 
 
-class GridBackGround(Entity):
+class GuiBackGround(Entity):
     def __init__(self, entity_container):
         Entity.__init__(self, entity_container)
         width, depth = 400, 600
-        self.x = 800 + width // 2
-        self.y = 0 + depth // 2
         self.image = pygame.Surface((width, depth))
         self.image.fill((255, 220, 0))
-        self.x_size = width
-        self.y_size = depth
+        self.rect = self.image.get_rect()
+        self.rect.left = 800
+        self.rect.top = 0
 
 
 class Gui(EntityContainer):
     def __init__(self):
         EntityContainer.__init__(self)
-        self.add_entity(GridBackGround(self))
+        self.add_entity(GuiBackGround(self))
         self.add_entity(CommandBlockFactory(0, 42, self))
 
     def update_entities(self, event_listener):
