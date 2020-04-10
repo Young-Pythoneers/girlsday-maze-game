@@ -43,7 +43,10 @@ class Transition(ABC):
         self.entity.entity_container.entity_container.move_grid_entity(
             self.entity, grid_destination_x, grid_destination_y
         )
-        self.transition_start_x, self.transition_start_y = self.entity.rect.centerx, self.entity.rect.centery
+        self.transition_start_x, self.transition_start_y = (
+            self.entity.rect.centerx,
+            self.entity.rect.centery,
+        )
         # Calculate the destination in world coordinates
         (
             self.transition_stop_x,
@@ -67,6 +70,7 @@ class CosTransition(Transition):
 
     def transition_function(self, x):
         return -np.cos(np.pi * x / 2) + 1
+
 
 class WobblyTransition(Transition):
     def __init__(self, entity):

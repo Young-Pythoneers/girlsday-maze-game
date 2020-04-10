@@ -23,7 +23,6 @@ class Entity:
         self.image = None
         self.rect = None
 
-
     def draw(self, screen):
         screen.blit(self.image, [self.rect.left, self.rect.top])
 
@@ -79,7 +78,7 @@ class Collider:
 class Physical:
     def __init__(self, x, y, impulse_x, impulse_y):
         self.image = None
-        self.rect = pygame.Rect(0,0,1,1)
+        self.rect = pygame.Rect(0, 0, 1, 1)
         self.rect.centerx = x
         self.rect.centery = y
         self.impulse_x = impulse_x
@@ -161,7 +160,9 @@ class Player(Collider, GridMover):
     def update_collisions(self):
         for col in self._collisions:
             if isinstance(col, Enemy):
-                Music.sound_handler("../sounds/wilhelm_scream.wav", 0)
+                Music.sound_handler(
+                    "../sounds/wilhelm_scream.wav", 0
+                )  # TODO why is Music called in this way?
                 dead_player = DeadPlayer()
                 self.entity_container.entity_container.add_entity(dead_player)
                 dead_player.rect.centerx = self.rect.centerx
@@ -186,6 +187,7 @@ class DeadPlayer(Entity):
         GridMover.__init__(self, entity_container)
         self.image = pygame.image.load("../images/skull.png")
         self.rect = self.image.get_rect()
+
 
 class Enemy(Collider, GridMover):
     def __init__(self, entity_container: EntityContainer = None):
@@ -233,9 +235,13 @@ class Goal(Collider, GridMover):
                     self.entity_container.entity_container.score.score += 1
                 else:  # if isinstance(coll, Enemy)
                     self.entity_container.entity_container.score.score -= 100
-                    Music.sound_handler("../sounds/evil_laugh.wav", 0)
+                    Music.sound_handler(
+                        "../sounds/evil_laugh.wav", 0
+                    )  # TODO why is Music called in this way?
                     self.entity_container.entity_conainer.we_lost = True
-                Music.sound_handler("../sounds/munch.wav", 0)
+                Music.sound_handler(
+                    "../sounds/munch.wav", 0
+                )  # TODO why is Music called in this way?
                 self.__make_explosion()
                 self.entity_container.entity_container.remove_grid_entity(self)
                 return
@@ -376,7 +382,9 @@ class GridPointInfo:
         return x, y
 
     def set_grid_xy_to_world_xy(self, ent):
-        ent.rect.centerx, ent.rect.centery = self.grid_xy_to_world_xy(self.grid_x, self.grid_y)
+        ent.rect.centerx, ent.rect.centery = self.grid_xy_to_world_xy(
+            self.grid_x, self.grid_y
+        )
 
 
 class GridPoint(EntityContainer, GridPointInfo):
@@ -627,31 +635,35 @@ class Clickable:
 
 
 class CommandBlock(Clickable, Entity, Updateable):
-    def __init__(self, id, entity_container = None):
+    def __init__(self, id, entity_container=None):
         Clickable.__init__(self, id)
         Entity.__init__(self, entity_container)
         Updateable.__init__(self)
 
-
     def update(self, event_listener):
         if self.clicked:
-            print("Hi, I am clicked")
             self.rect.centerx, self.rect.centery = pygame.mouse.get_pos()
 
 
-class UpBlock(CommandBlock):
+class RightBlock(CommandBlock):
     def __init__(self, id, entity_container=None):
         CommandBlock.__init__(self, id, entity_container)
-        self.image = pygame.image.load("../images/buttons/up.png")
+        self.image = pygame.image.load("../images/buttons/right.png")
         self.rect = self.image.get_rect()
         self.rect.centerx = 900
         self.rect.centery = 50
+
+    def draw(self, screen):
+        background = pygame.Surface((self.rect.width, self.rect.height))
+        background.fill((150, 150, 255))
+        screen.blit(background, [self.rect.x, self.rect.y])
+        screen.blit(self.image, [self.rect.x, self.rect.y])
 
 
 class CommandBlockFactory(CommandBlock):
     def __init__(self, id, max_blocks, entity_container=None):
         CommandBlock.__init__(self, id, entity_container)
-        self.image = pygame.image.load("../images/buttons/up.png")
+        self.image = pygame.image.load("../images/buttons/right.png")
         self.rect = self.image.get_rect()
         self.rect.centerx = 900
         self.rect.centery = 50
@@ -662,7 +674,7 @@ class CommandBlockFactory(CommandBlock):
 
     def update(self, event_listener):
         if self.clicked and self.max_blocks > 0:
-            block = UpBlock(1, self.entity_container)
+            block = RightBlock(1, self.entity_container)
             block.clicked = True
             self.clicked = False
             self.entity_container.add_entity(block)
@@ -670,8 +682,11 @@ class CommandBlockFactory(CommandBlock):
             self.text = self.font.render(str(self.max_blocks), True, (200, 255, 255))
 
     def draw(self, screen):
-        screen.blit(self.image, [self.rect[0], self.rect[1]])
-        screen.blit(self.text, [self.rect[0], self.rect[1]])
+        background = pygame.Surface((self.rect.width, self.rect.height))
+        background.fill((50, 50, 255))
+        screen.blit(background, [self.rect.x, self.rect.y])
+        screen.blit(self.image, [self.rect.x, self.rect.y])
+        screen.blit(self.text, [self.rect.x, self.rect.y])
 
 
 class GuiBackGround(Entity):
@@ -696,11 +711,12 @@ class Gui(EntityContainer):
             for ent in self.entities:
                 ent.clicked = False
         if event_listener.MOUSEBUTTONDOWN:
-            print("clicked in gui")
             mouse_x, mouse_y = pygame.mouse.get_pos()
             if event_listener.down_button == 1:
                 for ent in self.entities[::-1]:
-                    if isinstance(ent, Clickable) and ent.rect.collidepoint((mouse_x, mouse_y)):
+                    if isinstance(ent, Clickable) and ent.rect.collidepoint(
+                        (mouse_x, mouse_y)
+                    ):
                         ent.clicked = True
                         self.entities.remove(ent)
                         self.entities.append(ent)

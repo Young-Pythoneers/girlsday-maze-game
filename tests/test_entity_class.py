@@ -16,8 +16,8 @@ from girlsday_game.entity import (
     Transitional,
     Wall,
 )
-from girlsday_game.timer import TimerContainer
 from girlsday_game.game import Game
+from girlsday_game.timer import TimerContainer
 
 
 def test_entity():
@@ -85,10 +85,10 @@ def test_entity_keeper():
 
 
 def test_grid_point():
-    GridPoint( 0, 0, 0, 0, 0, 0, EntityContainer())
+    GridPoint(0, 0, 0, 0, 0, 0, EntityContainer())
     assert True
 
 
 def test_grid():
-    Grid(TimerContainer(),"../levels/lvl1.txt", Game())
+    Grid(TimerContainer(), "../levels/lvl1.txt", Game())
     assert True
