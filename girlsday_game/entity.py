@@ -630,8 +630,10 @@ class LevelBuilder:
 
 class Clickable:
     def __init__(self, id):
-        self.clicked = False
-        self.id = id
+        self.clicked: bool = False
+        self.id: int = id
+        self.upper_sticky_zones: list[pygame.Rect] = []
+        self.lower_sticky_zones: list[pygame.Rect] = []
 
 
 class CommandBlock(Clickable, Entity, Updateable):
@@ -646,12 +648,12 @@ class CommandBlock(Clickable, Entity, Updateable):
 
 
 class RightBlock(CommandBlock):
-    def __init__(self, id, entity_container=None):
+    def __init__(self, x, y, id, entity_container=None):
         CommandBlock.__init__(self, id, entity_container)
         self.image = pygame.image.load("../images/buttons/right.png")
         self.rect = self.image.get_rect()
-        self.rect.centerx = 900
-        self.rect.centery = 50
+        self.rect.centerx = x
+        self.rect.centery = y
 
     def draw(self, screen):
         background = pygame.Surface((self.rect.width, self.rect.height))
@@ -674,7 +676,9 @@ class CommandBlockFactory(CommandBlock):
 
     def update(self, event_listener):
         if self.clicked and self.max_blocks > 0:
-            block = RightBlock(1, self.entity_container)
+            block = RightBlock(
+                self.rect.centerx, self.rect.centery, 1, self.entity_container
+            )
             block.clicked = True
             self.clicked = False
             self.entity_container.add_entity(block)
